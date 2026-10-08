@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Blaze</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: #f2f3f5;
+      color: #16181c;
+    }
+    .wrap { padding: 28px 20px 32px; }
+    .mark {
+      width: 56px; height: 56px; border-radius: 18px;
+      background: #ff5c1b; color: #fff;
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 22px;
+    }
+    h1 { margin: 14px 0 0; font-size: 28px; letter-spacing: -0.03em; }
+    p.sub { margin: 6px 0 0; color: #66707a; font-size: 14px; }
+    form { margin-top: 22px; }
+    input {
+      width: 100%; height: 48px; border: 0; border-radius: 16px;
+      background: #fff; padding: 0 16px; font-size: 16px;
+      box-shadow: 0 8px 24px rgba(22,24,28,.06);
+    }
+    .go {
+      margin-top: 10px; width: 100%; height: 48px; border: 0; border-radius: 16px;
+      background: #ff5c1b; color: #fff; font-weight: 700; font-size: 16px;
+    }
+    h2 { margin: 26px 0 10px; font-size: 13px; color: #66707a; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    button.tile {
+      border: 0; background: transparent; padding: 0; color: inherit;
+    }
+    .ico {
+      width: 52px; height: 52px; margin: 0 auto; border-radius: 16px;
+      background: #fff; display: grid; place-items: center;
+      font-weight: 800; color: #ff5c1b;
+      box-shadow: 0 8px 24px rgba(22,24,28,.06);
+    }
+    .tile span { display: block; margin-top: 6px; font-size: 11px; color: #66707a; }
+    .hint {
+      margin-top: 28px; background: #fff; border-radius: 16px; padding: 14px 16px;
+      font-size: 13px; line-height: 1.45; color: #3d4650;
+      box-shadow: 0 8px 24px rgba(22,24,28,.06);
+    }
+    .hint b { color: #16181c; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="mark">B</div>
+    <h1>Blaze</h1>
+    <p class="sub">Fast browser. Swipe videos like a media player.</p>
+    <form id="search">
+      <input id="q" name="q" placeholder="Search or type a site" autocomplete="off" />
+      <button class="go" type="submit">Search</button>
+    </form>
+    <h2>Shortcuts</h2>
+    <div class="grid" id="shortcuts"></div>
+    <div class="hint">
+      While a video plays: <b>swipe left or right</b> to seek,
+      <b>right side up/down</b> for volume,
+      <b>left side up/down</b> for brightness.
+      The next clip preloads in the background.
+    </div>
+  </div>
+  <script>
+    const sites = [
+      ["Wikipedia", "https://en.wikipedia.org", "W"],
+      ["YouTube", "https://m.youtube.com", "Y"],
+      ["Reddit", "https://www.reddit.com", "R"],
+      ["BBC", "https://www.bbc.com/news", "B"],
+      ["GitHub", "https://github.com", "G"],
+      ["MDN", "https://developer.mozilla.org", "M"],
+      ["Archive", "https://archive.org", "A"],
+      ["DDG", "https://duckduckgo.com", "D"]
+    ];
+    const grid = document.getElementById("shortcuts");
+    sites.forEach(([name, url, letter]) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tile";
+      b.innerHTML = '<div class="ico">' + letter + '</div><span>' + name + '</span>';
+      b.addEventListener("click", () => BlazeBridge.open(url));
+      grid.appendChild(b);
+    });
+    document.getElementById("search").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = document.getElementById("q").value.trim();
+      if (q) BlazeBridge.open(q);
+    });
+  </script>
+</body>
+</html>

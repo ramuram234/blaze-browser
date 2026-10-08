@@ -18,3 +18,9 @@ artifacts
 AGENTS.md
 AGENTS.project.md
 public/__grok
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/.idea
+
