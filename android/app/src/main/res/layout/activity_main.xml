@@ -1,171 +1,298 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/bg"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/browser_ui"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/primary"
-        android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+        android:layout_height="match_parent"
+        android:background="@color/bg"
+        android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/address"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:background="@drawable/address_bg"
-            android:hint="@string/address_hint"
-            android:imeOptions="actionGo"
-            android:importantForAutofill="no"
-            android:inputType="textUri"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:singleLine="true"
-            android:textColor="@color/ink"
-            android:textColorHint="@color/muted"
-            android:textSize="14sp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/primary"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
 
-        <ImageButton
-            android:id="@+id/btn_go"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="Go"
-            android:src="@drawable/ic_go" />
-    </LinearLayout>
+            <EditText
+                android:id="@+id/address"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/address_bg"
+                android:hint="@string/address_hint"
+                android:imeOptions="actionGo"
+                android:importantForAutofill="no"
+                android:inputType="textUri"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true"
+                android:textColor="@color/ink"
+                android:textColorHint="@color/muted"
+                android:textSize="14sp" />
 
-    <ProgressBar
-        android:id="@+id/progress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:max="100"
-        android:progressTint="@color/bar"
-        android:visibility="gone" />
+            <ImageButton
+                android:id="@+id/btn_go"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="6dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Go"
+                android:src="@drawable/ic_go" />
+        </LinearLayout>
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:max="100"
+            android:progressTint="@color/bar"
+            android:visibility="gone" />
 
         <FrameLayout
-            android:id="@+id/web_stack"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <FrameLayout
+                android:id="@+id/web_stack"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:id="@+id/btn_play"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/play_chip"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="Watch video"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/tabs_panel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#F7F2F3F5"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Windows"
+                    android:textColor="@color/ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:id="@+id/tab_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </ScrollView>
+
+                <Button
+                    android:id="@+id/btn_new_tab"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:backgroundTint="@color/primary"
+                    android:text="New tab"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/menu_panel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#F7F2F3F5"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/menu_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Menu"
+                    android:textColor="@color/ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:id="@+id/menu_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </ScrollView>
+            </LinearLayout>
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/surface"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Back"
+                android:src="@drawable/ic_back" />
+
+            <ImageButton
+                android:id="@+id/btn_forward"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Forward"
+                android:src="@drawable/ic_forward" />
+
+            <TextView
+                android:id="@+id/btn_tabs"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="1"
+                android:textColor="@color/primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/btn_menu"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="Menu"
+                android:textColor="@color/ink"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btn_home"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Home"
+                android:src="@drawable/ic_home" />
+
+            <ImageButton
+                android:id="@+id/btn_reload"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Reload"
+                android:src="@drawable/ic_reload" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fullscreen_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/fs_video"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <View
+            android:id="@+id/fs_gestures"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
         <TextView
-            android:id="@+id/btn_play"
+            android:id="@+id/fs_hud"
             android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/play_chip"
-            android:gravity="center"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:text="Play in Blaze"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#CC0C0D10"
+            android:padding="12dp"
             android:textColor="#FFFFFF"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:visibility="gone" />
 
         <LinearLayout
-            android:id="@+id/tabs_panel"
+            android:id="@+id/fs_chrome"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#F7F2F3F5"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:visibility="gone">
+            android:layout_height="wrap_content"
+            android:background="#66000000"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <ImageButton
+                android:id="@+id/fs_close"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Close video"
+                android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Windows"
-                android:textColor="@color/ink"
-                android:textSize="20sp"
+                android:layout_weight="1"
+                android:text="Blaze player"
+                android:textColor="#FFFFFF"
                 android:textStyle="bold" />
 
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="12dp"
-                android:layout_weight="1">
-
-                <LinearLayout
-                    android:id="@+id/tab_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </ScrollView>
-
-            <Button
-                android:id="@+id/btn_new_tab"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/fs_pip"
+                android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:backgroundTint="@color/primary"
-                android:text="New tab"
-                android:textColor="#FFFFFF" />
+                android:gravity="center"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="PiP"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/fs_rotate"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Rotate"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold" />
         </LinearLayout>
     </FrameLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/surface"
-        android:gravity="center">
-
-        <ImageButton
-            android:id="@+id/btn_back"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back"
-            android:src="@drawable/ic_back" />
-
-        <ImageButton
-            android:id="@+id/btn_forward"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Forward"
-            android:src="@drawable/ic_forward" />
-
-        <TextView
-            android:id="@+id/btn_tabs"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:gravity="center"
-            android:text="1"
-            android:textColor="@color/primary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:id="@+id/btn_home"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Home"
-            android:src="@drawable/ic_home" />
-
-        <ImageButton
-            android:id="@+id/btn_reload"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Reload"
-            android:src="@drawable/ic_reload" />
-    </LinearLayout>
-</LinearLayout>
+</FrameLayout>

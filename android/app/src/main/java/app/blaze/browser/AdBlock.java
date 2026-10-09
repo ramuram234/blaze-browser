@@ -76,10 +76,12 @@ public final class AdBlock {
             "tpc.googlesyndication.com"
     ));
 
+    public static volatile boolean enabled = true;
+
     private AdBlock() {}
 
     public static boolean isAd(Uri uri) {
-        if (uri == null) return false;
+        if (!enabled || uri == null) return false;
         String host = uri.getHost();
         if (host == null) return false;
         host = host.toLowerCase(Locale.US);

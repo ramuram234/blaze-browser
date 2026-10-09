@@ -7,11 +7,20 @@
     try { BlazeBridge.onVideo(url); } catch (e) {}
   }
 
+  function report(v) {
+    if (!v || v.tagName !== "VIDEO") return;
+    var box = v.getBoundingClientRect();
+    var tiny = box.width < 80 || box.height < 48;
+    if (tiny && v.paused) return;
+    var w = v.videoWidth || Math.round(box.width) || 0;
+    var h = v.videoHeight || Math.round(box.height) || 0;
+    try { BlazeBridge.onPageVideo(w, h); } catch (e) {}
+    send(v.currentSrc || v.src);
+  }
+
   function scan() {
-    var nodes = document.querySelectorAll("video,source");
-    for (var i = 0; i < nodes.length; i++) {
-      send(nodes[i].currentSrc || nodes[i].src);
-    }
+    var nodes = document.querySelectorAll("video");
+    for (var i = 0; i < nodes.length; i++) report(nodes[i]);
   }
 
   try {
@@ -23,9 +32,9 @@
     });
   } catch (e) {}
 
-  document.addEventListener("play", function (e) {
-    if (e.target && e.target.currentSrc) send(e.target.currentSrc);
-  }, true);
+  document.addEventListener("play", function (e) { report(e.target); }, true);
+  document.addEventListener("loadedmetadata", function (e) { report(e.target); }, true);
+  setInterval(scan, 2000);
 
   document.addEventListener("touchstart", function (e) {
     var n = e.target;

@@ -45,6 +45,20 @@
         android:textColor="#FFFFFF"
         android:textSize="13sp" />
 
+    <TextView
+        android:id="@+id/pip_player"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_gravity="end|top"
+        android:layout_margin="8dp"
+        android:background="#66000000"
+        android:gravity="center"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:text="PiP"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+
     <ImageButton
         android:id="@+id/close_player"
         android:layout_width="48dp"

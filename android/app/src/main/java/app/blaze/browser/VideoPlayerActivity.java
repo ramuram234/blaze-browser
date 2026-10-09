@@ -1,11 +1,15 @@
 package app.blaze.browser;
 
+import android.app.PictureInPictureParams;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Rational;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.VideoSize;
 import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
@@ -36,6 +41,8 @@ public class VideoPlayerActivity extends AppCompatActivity {
     public static final String EXTRA_URLS = "urls";
     public static final String EXTRA_REFERER = "referer";
     public static final String EXTRA_UA = "ua";
+    public static final String EXTRA_WIDTH = "width";
+    public static final String EXTRA_HEIGHT = "height";
 
     private ExoPlayer player;
     private TextView hud;
@@ -114,9 +121,17 @@ public class VideoPlayerActivity extends AppCompatActivity {
             @Override
             public void onPlayerError(PlaybackException error) {
                 Toast.makeText(VideoPlayerActivity.this, "This video cannot be played here", Toast.LENGTH_SHORT).show();
-                if (player.getMediaItemCount() <= 1) finish();
+                if (player != null && player.getMediaItemCount() <= 1) finish();
+            }
+
+            @Override
+            public void onVideoSizeChanged(VideoSize videoSize) {
+                orient(videoSize.width, videoSize.height);
             }
         });
+
+        orient(getIntent().getIntExtra(EXTRA_WIDTH, 0), getIntent().getIntExtra(EXTRA_HEIGHT, 0));
+        findViewById(R.id.pip_player).setOnClickListener(v -> enterPip());
 
         close.setOnClickListener(v -> finish());
         layer.setOnTouchListener((v, event) -> onGesture(v, event));
@@ -141,6 +156,34 @@ public class VideoPlayerActivity extends AppCompatActivity {
             handler.postDelayed(this, 250);
         }
     };
+
+    private void orient(int w, int h) {
+        if (w <= 0 || h <= 0) return;
+        setRequestedOrientation(w >= h
+                ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                : ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+    }
+
+    private void enterPip() {
+        if (Build.VERSION.SDK_INT < 26 || player == null) return;
+        int w = Math.max(player.getVideoSize().width, 16);
+        int h = Math.max(player.getVideoSize().height, 9);
+        float ratio = w / (float) h;
+        if (ratio < 0.5f) ratio = 0.5f;
+        if (ratio > 2.3f) ratio = 2.3f;
+        try {
+            enterPictureInPictureMode(new PictureInPictureParams.Builder()
+                    .setAspectRatio(new Rational(Math.round(ratio * 100), 100))
+                    .build());
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (player != null && player.isPlaying()) enterPip();
+    }
 
     private boolean onGesture(View v, MotionEvent event) {
         if (player == null) return false;
