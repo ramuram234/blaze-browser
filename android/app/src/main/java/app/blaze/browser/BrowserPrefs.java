@@ -35,6 +35,59 @@ public final class BrowserPrefs {
         prefs(context).edit().putBoolean("desktop", on).apply();
     }
 
+    public static boolean powerfulAds(Context context) {
+        return prefs(context).getBoolean("powerful_ads", false);
+    }
+
+    public static void setPowerfulAds(Context context, boolean on) {
+        prefs(context).edit().putBoolean("powerful_ads", on).apply();
+        AdBlock.powerful = on;
+    }
+
+    public static boolean nightMode(Context context) {
+        return prefs(context).getBoolean("night", false);
+    }
+
+    public static void setNightMode(Context context, boolean on) {
+        prefs(context).edit().putBoolean("night", on).apply();
+    }
+
+    public static boolean preload(Context context) {
+        return prefs(context).getBoolean("preload", true);
+    }
+
+    public static void setPreload(Context context, boolean on) {
+        prefs(context).edit().putBoolean("preload", on).apply();
+    }
+
+    public static boolean boost(Context context) {
+        return prefs(context).getBoolean("boost", true);
+    }
+
+    public static void setBoost(Context context, boolean on) {
+        prefs(context).edit().putBoolean("boost", on).apply();
+    }
+
+    public static int imageQuality(Context context) {
+        return prefs(context).getInt("image_q", 1);
+    }
+
+    public static void setImageQuality(Context context, int q) {
+        prefs(context).edit().putInt("image_q", Math.max(0, Math.min(2, q))).apply();
+    }
+
+    public static boolean backgroundAudio(Context context) {
+        return prefs(context).getBoolean("bg_audio", false);
+    }
+
+    public static void setBackgroundAudio(Context context, boolean on) {
+        prefs(context).edit().putBoolean("bg_audio", on).apply();
+    }
+
+    public static void clearAll(Context context) {
+        prefs(context).edit().putString("history", "[]").putString("bookmarks", "[]").apply();
+    }
+
     public static void addHistory(Context context, String title, String url) {
         if (url == null || url.startsWith("file:") || url.startsWith("about:")) return;
         try {

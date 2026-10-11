@@ -58,6 +58,13 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private int startVolume = 50;
     private float startBright = 0.8f;
     private boolean moved;
+    private boolean locked;
+    private boolean bgAudio;
+    private int speedIndex = 2;
+    private static final float[] SPEEDS = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f};
+    private TextView speedBtn;
+    private TextView lockBtn;
+    private View playerTools;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,7 +103,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 .setReadTimeoutMs(12000);
         DefaultDataSource.Factory dataSource = new DefaultDataSource.Factory(this, http);
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                .setBufferDurationsMs(1_500, 50_000, 400, 1_000)
+                .setBufferDurationsMs(2_000, 60_000, 500, 1_500)
                 .build();
 
         player = new ExoPlayer.Builder(this)
@@ -132,6 +139,31 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         orient(getIntent().getIntExtra(EXTRA_WIDTH, 0), getIntent().getIntExtra(EXTRA_HEIGHT, 0));
         findViewById(R.id.pip_player).setOnClickListener(v -> enterPip());
+
+        bgAudio = BrowserPrefs.backgroundAudio(this);
+        speedBtn = findViewById(R.id.btn_speed);
+        lockBtn = findViewById(R.id.btn_lock);
+        playerTools = findViewById(R.id.player_tools);
+        TextView bgBtn = findViewById(R.id.btn_bg_audio);
+        bgBtn.setText(bgAudio ? "BG on" : "BG audio");
+        speedBtn.setOnClickListener(v -> {
+            if (player == null || locked) return;
+            speedIndex = (speedIndex + 1) % SPEEDS.length;
+            player.setPlaybackSpeed(SPEEDS[speedIndex]);
+            speedBtn.setText(String.format(java.util.Locale.US, "%.2fx", SPEEDS[speedIndex]));
+            showHud("Speed " + speedBtn.getText());
+        });
+        lockBtn.setOnClickListener(v -> {
+            locked = !locked;
+            lockBtn.setText(locked ? "Unlock" : "Lock");
+            showHud(locked ? "Locked" : "Unlocked");
+        });
+        bgBtn.setOnClickListener(v -> {
+            bgAudio = !bgAudio;
+            BrowserPrefs.setBackgroundAudio(this, bgAudio);
+            bgBtn.setText(bgAudio ? "BG on" : "BG audio");
+            showHud(bgAudio ? "Background audio on" : "Background audio off");
+        });
 
         close.setOnClickListener(v -> finish());
         layer.setOnTouchListener((v, event) -> onGesture(v, event));
@@ -187,6 +219,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
     private boolean onGesture(View v, MotionEvent event) {
         if (player == null) return false;
+        if (locked && event.getActionMasked() != MotionEvent.ACTION_UP) return true;
+        if (locked) {
+            lockBtn.setVisibility(View.VISIBLE);
+            return true;
+        }
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 downX = event.getX();
@@ -281,7 +318,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (player != null) player.pause();
+        if (player != null && !bgAudio) player.pause();
     }
 
     @Override

@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         AdBlock.enabled = BrowserPrefs.adsEnabled(this);
+        AdBlock.powerful = BrowserPrefs.powerfulAds(this);
         sniffJs = readAsset("www/sniff.js");
 
         stack = findViewById(R.id.web_stack);
@@ -202,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setLoadsImagesAutomatically(true);
+        settings.setLoadsImagesAutomatically(BrowserPrefs.imageQuality(this) > 0);
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
@@ -308,6 +309,14 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (sniffJs != null && !sniffJs.isEmpty() && url != null && !url.startsWith("file:")) {
                     view.evaluateJavascript(sniffJs, null);
+                }
+                if (url != null && !url.startsWith("file:") && BrowserPrefs.nightMode(MainActivity.this)) {
+                    view.evaluateJavascript(
+                            "(function(){var s=document.getElementById('blaze-night');if(s)return;"
+                                    + "s=document.createElement('style');s.id='blaze-night';"
+                                    + "s.textContent='html,body{background:#121212!important;color:#eee!important}a{color:#8ab4f8!important}';"
+                                    + "document.documentElement.appendChild(s);})();",
+                            null);
                 }
             }
         });
@@ -501,6 +510,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void prefetch(String url) {
+        if (!BrowserPrefs.preload(this)) return;
         if (url == null || url.equals(lastPrefetch)) return;
         if (!(url.startsWith("http://") || url.startsWith("https://"))) return;
         if (AdBlock.isAd(Uri.parse(url))) return;
@@ -623,9 +633,62 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Cache cleared", Toast.LENGTH_SHORT).show();
             hideMenu();
         });
-        addRow("Clear history", () -> {
-            BrowserPrefs.clearHistory(this);
-            Toast.makeText(this, "History cleared", Toast.LENGTH_SHORT).show();
+        addRow("Downloads", () -> {
+            hideMenu();
+            try {
+                startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
+            } catch (Exception e) {
+                Toast.makeText(this, "No downloads app found", Toast.LENGTH_SHORT).show();
+            }
+        });
+        addRow(BrowserPrefs.nightMode(this) ? "Night mode: ON" : "Night mode: off", () -> {
+            BrowserPrefs.setNightMode(this, !BrowserPrefs.nightMode(this));
+            current().reload();
+            hideMenu();
+        });
+        addRow("Refresh", () -> {
+            hideMenu();
+            String url = current().getUrl();
+            if (url == null || url.startsWith("file:")) current().loadUrl(HOME);
+            else current().reload();
+        });
+        addRow(BrowserPrefs.boost(this) ? "Speed boost: ON" : "Speed boost: off", () -> {
+            boolean next = !BrowserPrefs.boost(this);
+            BrowserPrefs.setBoost(this, next);
+            Toast.makeText(this, next ? "Boost on. Ads and trackers stay blocked." : "Boost off", Toast.LENGTH_SHORT).show();
+            hideMenu();
+        });
+        addRow(BrowserPrefs.preload(this) ? "Preload pages: ON" : "Preload pages: off", () -> {
+            boolean next = !BrowserPrefs.preload(this);
+            BrowserPrefs.setPreload(this, next);
+            Toast.makeText(this, next ? "Touch a link to preload it" : "Preload off", Toast.LENGTH_SHORT).show();
+            hideMenu();
+        });
+        int iq = BrowserPrefs.imageQuality(this);
+        addRow("Image quality: " + (iq == 0 ? "Low" : iq == 1 ? "Medium" : "High"), () -> {
+            int next = (BrowserPrefs.imageQuality(this) + 1) % 3;
+            BrowserPrefs.setImageQuality(this, next);
+            current().getSettings().setLoadsImagesAutomatically(next > 0);
+            Toast.makeText(this, next == 0 ? "Images off (data saver)" : "Images on", Toast.LENGTH_SHORT).show();
+            hideMenu();
+        });
+        addRow(BrowserPrefs.powerfulAds(this) ? "Powerful ad block: ON" : "Powerful ad block: off", () -> {
+            boolean next = !BrowserPrefs.powerfulAds(this);
+            BrowserPrefs.setPowerfulAds(this, next);
+            if (next) BrowserPrefs.setAdsEnabled(this, true);
+            Toast.makeText(this, next ? "Stronger ad block on" : "Stronger ad block off", Toast.LENGTH_SHORT).show();
+            hideMenu();
+        });
+        addRow(BrowserPrefs.backgroundAudio(this) ? "Background audio: ON" : "Background audio: off", () -> {
+            boolean next = !BrowserPrefs.backgroundAudio(this);
+            BrowserPrefs.setBackgroundAudio(this, next);
+            Toast.makeText(this, next ? "Video keeps playing if you leave the player" : "Background audio off", Toast.LENGTH_SHORT).show();
+            hideMenu();
+        });
+        addRow("Clear all records", () -> {
+            BrowserPrefs.clearAll(this);
+            for (WebView web : tabs) web.clearCache(true);
+            Toast.makeText(this, "History, bookmarks, and cache cleared", Toast.LENGTH_SHORT).show();
             hideMenu();
         });
         menuPanel.setVisibility(View.VISIBLE);
