@@ -77,6 +77,7 @@ public final class AdBlock {
     ));
 
     public static volatile boolean enabled = true;
+    public static volatile boolean powerful = false;
 
     private AdBlock() {}
 
@@ -91,7 +92,7 @@ public final class AdBlock {
             if (host.endsWith("." + blocked)) return true;
         }
         String url = uri.toString().toLowerCase(Locale.US);
-        return url.contains("/pagead/")
+        boolean base = url.contains("/pagead/")
                 || url.contains("googleads.")
                 || url.contains("doubleclick.net")
                 || url.contains("googlesyndication")
@@ -103,5 +104,14 @@ public final class AdBlock {
                 || url.contains("/ads/banner")
                 || url.contains("ad_click")
                 || url.contains("clicktag");
+        if (base) return true;
+        if (!powerful) return false;
+        return url.contains("/ads/")
+                || url.contains("sponsor")
+                || url.contains("sticky")
+                || url.contains("banner")
+                || host.contains("analytics")
+                || host.contains("tracker")
+                || host.contains("pixel");
     }
 }
