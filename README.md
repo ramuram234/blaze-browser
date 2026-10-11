@@ -1,48 +1,41 @@
 # Blaze
 
-A UC Browser–style mobile browser: orange chrome, turbo pages, tabs, news, videos, and a gesture media player.
+A fast mobile browser inspired by UC Browser–style browsing: Google search, tabs, ad blocking, speed boost, and a gesture video player.
 
 ## Android APK
 
-Installable build: [releases/blaze-1.2.0.apk](releases/blaze-1.2.0.apk)
-
-Package `app.blaze.browser`, version 1.2.0.
-
-On your phone, uninstall the old Blaze app, then install this APK.
-
-- **Menu** has history, bookmarks, share, find, desktop site, ad block, clear cache, and clear history
-- **Watch video** or **Fullscreen video** appears when a page is actually playing a video. It uses the site’s own player, full screen
-- Wide videos turn landscape. Tall videos stay vertical. **Rotate** flips that
-- **PiP** keeps the video in a small window. Leaving the app while a video is full screen does the same
-- In the player, swipe left/right to seek, the right side is volume, the left side is brightness, and the buffer bar shows how far the video has loaded
-- Direct video files still open in the Blaze player with the same controls
-
-Rebuild from source (Android SDK 34 and JDK 17):
+Latest source is version **1.3.0**. Build on a machine with Android SDK 34 and JDK 17:
 
 ```bash
 cd android
 gradle assembleDebug
 ```
 
-The APK is written to `android/app/build/outputs/apk/debug/app-debug.apk`.
+APK path: `android/app/build/outputs/apk/debug/app-debug.apk`
 
-## Web app
+Older published builds: [releases](https://github.com/ramuram234/blaze-browser/releases)
 
-The same product also runs in the browser.
+### What 1.3.0 adds (from UC-style screenshots)
 
-```bash
-npm install
-npm run dev
-```
+**Menu**
+- Bookmarks, History, Downloads, Night mode, Refresh, Share
+- Ad blocker + Powerful ad block
+- Speed boost, Preload pages, Image quality (low/medium/high)
+- Desktop site, Background audio for the player
+- Clear cache / history / all records
 
-```bash
-npm run typecheck
-npm run build
-```
+**Video player**
+- Swipe seek, left brightness, right volume
+- Playback speed 0.5x–2x
+- Screen lock
+- Background audio (keep playing when you leave)
+- PiP, rotate, larger buffer for smoother playback
+- Fullscreen for in-page website videos
 
-## Stack
+**Browsing**
+- Google search default
+- Link preload on touch
+- Ad and popup blocking
+- Night mode CSS
 
-- Android: WebView, Java, Android SDK 34
-- Web: TanStack Start, React, Tailwind CSS, Zustand
-
-Not affiliated with UC Browser.
+Not affiliated with UC Browser. Cloud Boost–style remote servers, proprietary UC themes, and third-party mini-apps are not cloned.
