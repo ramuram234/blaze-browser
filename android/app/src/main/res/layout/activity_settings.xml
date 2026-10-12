@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:gravity="center_vertical" android:paddingStart="4dp"
+        android:background="@color/surface" android:elevation="1dp">
+        <ImageButton android:id="@+id/btn_back" android:layout_width="48dp"
+            android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back" android:contentDescription="Back"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Settings" android:textSize="18sp" android:textColor="@color/ink"
+            android:textStyle="bold" android:layout_marginStart="4dp"/>
+    </LinearLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider"/>
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:id="@+id/settings_list" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:orientation="vertical"
+            android:background="@color/surface"/>
+    </ScrollView>
+</LinearLayout>

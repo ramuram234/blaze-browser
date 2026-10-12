@@ -71,9 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private View fsGestures;
     private View fsChrome;
     private TextView fsHud;
-    private LinearLayout menuPanel;
-    private LinearLayout menuList;
-    private TextView menuTitle;
+    private FrameLayout menuSheetScrim;
     private View customView;
     private WebChromeClient.CustomViewCallback customCallback;
     private String mobileUa = "";
@@ -105,9 +103,6 @@ public class MainActivity extends AppCompatActivity {
         fsGestures = findViewById(R.id.fs_gestures);
         fsChrome = findViewById(R.id.fs_chrome);
         fsHud = findViewById(R.id.fs_hud);
-        menuPanel = findViewById(R.id.menu_panel);
-        menuList = findViewById(R.id.menu_list);
-        menuTitle = findViewById(R.id.menu_title);
 
         address.setOnEditorActionListener((v, actionId, event) -> {
             boolean go = actionId == EditorInfo.IME_ACTION_GO
@@ -119,8 +114,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
         findViewById(R.id.btn_go).setOnClickListener(v -> {
-            openInput(address.getText().toString(), false);
-            hideKeyboard();
+            String cu = current().getUrl();
+            if (cu == null || cu.startsWith("file:")) current().loadUrl(HOME);
+            else current().reload();
         });
         findViewById(R.id.btn_home).setOnClickListener(v -> {
             hideTabs();
@@ -130,12 +126,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_forward).setOnClickListener(v -> {
             if (current().canGoForward()) current().goForward();
         });
-        findViewById(R.id.btn_reload).setOnClickListener(v -> {
-            String url = current().getUrl();
-            if (url == null || url.startsWith("file:")) current().loadUrl(HOME);
-            else current().reload();
-        });
-        tabButton.setOnClickListener(v -> {
+
+        tabButton = null;
+        View tabsWrapper = findViewById(R.id.btn_tabs_wrapper);
+        if (tabsWrapper != null) tabsWrapper.setOnClickListener(v -> {
             if (tabsPanel.getVisibility() == View.VISIBLE) hideTabs();
             else showTabs();
         });
@@ -143,15 +137,20 @@ public class MainActivity extends AppCompatActivity {
             hideTabs();
             newTab(HOME);
         });
-        findViewById(R.id.btn_menu).setOnClickListener(v -> {
-            if (menuPanel.getVisibility() == View.VISIBLE) hideMenu();
-            else showMenu();
-        });
+        findViewById(R.id.btn_menu).setOnClickListener(v -> showMenuSheet());
         findViewById(R.id.fs_close).setOnClickListener(v -> exitPageFullscreen());
         findViewById(R.id.fs_pip).setOnClickListener(v -> enterPip());
         findViewById(R.id.fs_rotate).setOnClickListener(v -> toggleRotate());
         fsGestures.setOnTouchListener(this::onVideoGesture);
         playChip.setOnClickListener(v -> playDetected());
+        View bkBtn = findViewById(R.id.btn_bookmark_page);
+        if (bkBtn != null) bkBtn.setOnClickListener(v -> {
+            String pg = current().getUrl();
+            if (pg != null && !pg.startsWith("file:")) {
+                BrowserPrefs.toggleBookmark(this, state(current()).title, pg);
+                Toast.makeText(this, "Bookmarks updated", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -160,8 +159,8 @@ public class MainActivity extends AppCompatActivity {
                     exitPageFullscreen();
                     return;
                 }
-                if (menuPanel.getVisibility() == View.VISIBLE) {
-                    hideMenu();
+                if (menuSheetScrim != null && menuSheetScrim.getVisibility() == View.VISIBLE) {
+                    hideMenuSheet();
                     return;
                 }
                 if (tabsPanel.getVisibility() == View.VISIBLE) {
@@ -199,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
         WebView web = new WebView(this);
         web.setTag(new TabState());
         WebSettings settings = web.getSettings();
-        settings.setJavaScriptEnabled(true);
+        settings.setJavaScriptEnabled(!BrowserPrefs.disableJs(this));
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
@@ -226,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
 
         CookieManager cookies = CookieManager.getInstance();
         cookies.setAcceptCookie(true);
-        cookies.setAcceptThirdPartyCookies(web, true);
+        cookies.setAcceptThirdPartyCookies(web, !BrowserPrefs.blockThirdPartyCookies(this));
 
         web.addJavascriptInterface(new Bridge(), "BlazeBridge");
         web.setWebChromeClient(new WebChromeClient() {
@@ -271,6 +270,12 @@ public class MainActivity extends AppCompatActivity {
                 if (!(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("file://"))) {
                     return true;
                 }
+                String rawUrl2 = request.getUrl().toString();
+                if (BrowserPrefs.httpsOnly(MainActivity.this) && rawUrl2.startsWith("http://")
+                        && !rawUrl2.startsWith("http://localhost") && !rawUrl2.startsWith("http://127.")) {
+                    view.loadUrl(rawUrl2.replaceFirst("http://", "https://"));
+                    return true;
+                }
                 if (request.isForMainFrame() && AdBlock.isAd(uri)) {
                     if (view == current()) {
                         Toast.makeText(MainActivity.this, "Blocked an ad page", Toast.LENGTH_SHORT).show();
@@ -310,6 +315,12 @@ public class MainActivity extends AppCompatActivity {
                 if (sniffJs != null && !sniffJs.isEmpty() && url != null && !url.startsWith("file:")) {
                     view.evaluateJavascript(sniffJs, null);
                 }
+                if (BrowserPrefs.blockFonts(MainActivity.this) && url != null && !url.startsWith("file:")) {
+                    view.evaluateJavascript("(function(){var s=document.getElementById('blaze-nf');if(s)return;s=document.createElement('style');s.id='blaze-nf';s.textContent='*{font-family:sans-serif!important;}';document.head.appendChild(s);})()", null);
+                }
+                if (BrowserPrefs.blockAutoplay(MainActivity.this) && url != null && !url.startsWith("file:")) {
+                    view.evaluateJavascript("(function(){var o=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){if(!this.hasAttribute('ba')){this.muted=true;}return o.apply(this,arguments);};document.addEventListener('click',function(e){var v=e.target;while(v){if(v.tagName=='VIDEO'||v.tagName=='AUDIO'){v.setAttribute('ba','1');break;}v=v.parentElement;}},true);})()", null);
+                }
                 if (url != null && !url.startsWith("file:") && BrowserPrefs.nightMode(MainActivity.this)) {
                     view.evaluateJavascript(
                             "(function(){var s=document.getElementById('blaze-night');if(s)return;"
@@ -340,8 +351,26 @@ public class MainActivity extends AppCompatActivity {
             int type = hit.getType();
             String extra = hit.getExtra();
             if (extra == null) return false;
-            if (type == WebView.HitTestResult.SRC_ANCHOR_TYPE
+            if (type == WebView.HitTestResult.IMAGE_TYPE
                     || type == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+                new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Image")
+                    .setItems(new String[]{"Save image","Share URL","Copy URL","Open in new tab"}, (d2,w2) -> {
+                        if (w2==0) {
+                            try {
+                                android.app.DownloadManager.Request req = new android.app.DownloadManager.Request(Uri.parse(extra));
+                                req.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                                req.setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_PICTURES,"img_"+System.currentTimeMillis()+".jpg");
+                                ((android.app.DownloadManager)getSystemService(DOWNLOAD_SERVICE)).enqueue(req);
+                                Toast.makeText(MainActivity.this,"Saving image…",Toast.LENGTH_SHORT).show();
+                            } catch(Exception e2){Toast.makeText(MainActivity.this,"Failed: "+e2.getMessage(),Toast.LENGTH_SHORT).show();}
+                        } else if(w2==1){Intent s2=new Intent(Intent.ACTION_SEND);s2.setType("text/plain");s2.putExtra(Intent.EXTRA_TEXT,extra);startActivity(Intent.createChooser(s2,"Share"));}
+                        else if(w2==2){android.content.ClipboardManager cb2=(android.content.ClipboardManager)getSystemService(android.content.Context.CLIPBOARD_SERVICE);if(cb2!=null)cb2.setPrimaryClip(android.content.ClipData.newPlainText("url",extra));Toast.makeText(MainActivity.this,"Copied",Toast.LENGTH_SHORT).show();}
+                        else{newTab(extra);}
+                    }).show();
+                return true;
+            }
+            if (type == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
                 showLinkMenu(extra);
                 return true;
             }
@@ -407,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
             tabList.addView(row);
         }
         tabsPanel.setVisibility(View.VISIBLE);
-        menuPanel.setVisibility(View.GONE);
+        hideMenuSheet();
     }
 
     private void hideTabs() {
@@ -415,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void hideMenu() {
-        menuPanel.setVisibility(View.GONE);
+        hideMenuSheet();
     }
 
     private void closeTab(int tabIndex) {
@@ -437,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
             exitPageFullscreen();
             return;
         }
-        if (menuPanel.getVisibility() == View.VISIBLE) {
+        if (menuSheetScrim != null && menuSheetScrim.getVisibility() == View.VISIBLE) {
             hideMenu();
             return;
         }
@@ -454,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
         String url;
         if (t.startsWith("http://") || t.startsWith("https://")) url = t;
         else if (t.contains(".") && !t.contains(" ")) url = "https://" + t;
-        else url = "https://www.google.com/search?q=" + Uri.encode(t) + "&hl=en";
+        else url = buildSearchUrl(t);
         if (AdBlock.isAd(Uri.parse(url))) {
             Toast.makeText(this, "Blocked an ad link", Toast.LENGTH_SHORT).show();
             return;
@@ -592,133 +621,11 @@ public class MainActivity extends AppCompatActivity {
         if (fsHud != null && inPip) fsHud.setVisibility(View.GONE);
     }
 
-    private void showMenu() {
-        hideTabs();
-        menuTitle.setText("Menu");
-        menuList.removeAllViews();
-        String page = current().getUrl();
-        addRow("History", () -> showPages("History", BrowserPrefs.history(this)));
-        addRow("Bookmarks", () -> showPages("Bookmarks", BrowserPrefs.bookmarks(this)));
-        addRow(page != null && BrowserPrefs.isBookmarked(this, page) ? "Remove bookmark" : "Bookmark this page", () -> {
-            BrowserPrefs.toggleBookmark(this, state(current()).title, page);
-            Toast.makeText(this, "Bookmarks updated", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        addRow("Share page", () -> {
-            if (page == null || page.startsWith("file:")) {
-                Toast.makeText(this, "Open a page first", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent send = new Intent(Intent.ACTION_SEND);
-            send.setType("text/plain");
-            send.putExtra(Intent.EXTRA_TEXT, page);
-            startActivity(Intent.createChooser(send, "Share"));
-        });
-        addRow("Find on page", this::showFind);
-        addRow(BrowserPrefs.desktop(this) ? "Desktop site: on" : "Desktop site: off", () -> {
-            boolean next = !BrowserPrefs.desktop(this);
-            BrowserPrefs.setDesktop(this, next);
-            applyChromeMode(current());
-            current().reload();
-            hideMenu();
-        });
-        addRow(BrowserPrefs.adsEnabled(this) ? "Block ads: on" : "Block ads: off", () -> {
-            boolean next = !BrowserPrefs.adsEnabled(this);
-            BrowserPrefs.setAdsEnabled(this, next);
-            Toast.makeText(this, next ? "Ad blocking on" : "Ad blocking off", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        addRow("Clear cache", () -> {
-            for (WebView web : tabs) web.clearCache(true);
-            Toast.makeText(this, "Cache cleared", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        addRow("Downloads", () -> {
-            hideMenu();
-            try {
-                startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
-            } catch (Exception e) {
-                Toast.makeText(this, "No downloads app found", Toast.LENGTH_SHORT).show();
-            }
-        });
-        addRow(BrowserPrefs.nightMode(this) ? "Night mode: ON" : "Night mode: off", () -> {
-            BrowserPrefs.setNightMode(this, !BrowserPrefs.nightMode(this));
-            current().reload();
-            hideMenu();
-        });
-        addRow("Refresh", () -> {
-            hideMenu();
-            String url = current().getUrl();
-            if (url == null || url.startsWith("file:")) current().loadUrl(HOME);
-            else current().reload();
-        });
-        addRow(BrowserPrefs.boost(this) ? "Speed boost: ON" : "Speed boost: off", () -> {
-            boolean next = !BrowserPrefs.boost(this);
-            BrowserPrefs.setBoost(this, next);
-            Toast.makeText(this, next ? "Boost on. Ads and trackers stay blocked." : "Boost off", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        addRow(BrowserPrefs.preload(this) ? "Preload pages: ON" : "Preload pages: off", () -> {
-            boolean next = !BrowserPrefs.preload(this);
-            BrowserPrefs.setPreload(this, next);
-            Toast.makeText(this, next ? "Touch a link to preload it" : "Preload off", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        int iq = BrowserPrefs.imageQuality(this);
-        addRow("Image quality: " + (iq == 0 ? "Low" : iq == 1 ? "Medium" : "High"), () -> {
-            int next = (BrowserPrefs.imageQuality(this) + 1) % 3;
-            BrowserPrefs.setImageQuality(this, next);
-            current().getSettings().setLoadsImagesAutomatically(next > 0);
-            Toast.makeText(this, next == 0 ? "Images off (data saver)" : "Images on", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        addRow(BrowserPrefs.powerfulAds(this) ? "Powerful ad block: ON" : "Powerful ad block: off", () -> {
-            boolean next = !BrowserPrefs.powerfulAds(this);
-            BrowserPrefs.setPowerfulAds(this, next);
-            if (next) BrowserPrefs.setAdsEnabled(this, true);
-            Toast.makeText(this, next ? "Stronger ad block on" : "Stronger ad block off", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        addRow(BrowserPrefs.backgroundAudio(this) ? "Background audio: ON" : "Background audio: off", () -> {
-            boolean next = !BrowserPrefs.backgroundAudio(this);
-            BrowserPrefs.setBackgroundAudio(this, next);
-            Toast.makeText(this, next ? "Video keeps playing if you leave the player" : "Background audio off", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        addRow("Clear all records", () -> {
-            BrowserPrefs.clearAll(this);
-            for (WebView web : tabs) web.clearCache(true);
-            Toast.makeText(this, "History, bookmarks, and cache cleared", Toast.LENGTH_SHORT).show();
-            hideMenu();
-        });
-        menuPanel.setVisibility(View.VISIBLE);
-    }
+    private void showMenu() { showMenuSheet(); }
 
-    private void addRow(String label, Runnable action) {
-        TextView row = new TextView(this);
-        row.setText(label);
-        row.setTextColor(0xFF16181C);
-        row.setTextSize(16);
-        row.setPadding(8, 28, 8, 28);
-        row.setOnClickListener(v -> action.run());
-        menuList.addView(row);
-    }
 
-    private void showPages(String title, java.util.List<String[]> rows) {
-        menuTitle.setText(title);
-        menuList.removeAllViews();
-        addRow("Back to menu", this::showMenu);
-        if (rows.isEmpty()) {
-            addRow("Nothing saved yet", () -> {});
-            return;
-        }
-        for (String[] row : rows) {
-            addRow(row[0], () -> {
-                hideMenu();
-                current().loadUrl(row[1]);
-            });
-        }
-    }
+
+
 
     private void showFind() {
         android.widget.EditText input = new android.widget.EditText(this);
@@ -910,10 +817,147 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static final class TabState {
+        boolean isPrivate = false;
         String title = "Home";
         final LinkedHashSet<String> videos = new LinkedHashSet<>();
         boolean pageVideo;
         int vw;
         int vh;
     }
+
+    private String buildSearchUrl(String query) {
+        String enc = Uri.encode(query);
+        switch (BrowserPrefs.searchEngine(this)) {
+            case "duckduckgo": return "https://duckduckgo.com/?q=" + enc;
+            case "bing":       return "https://www.bing.com/search?q=" + enc;
+            case "brave":      return "https://search.brave.com/search?q=" + enc;
+            default:           return "https://www.google.com/search?q=" + enc + "&hl=en";
+        }
+    }
+
+    private boolean inReaderMode = false;
+    private String originalUrl = "";
+
+    private void toggleReaderMode() {
+        if (!inReaderMode) {
+            originalUrl = current().getUrl() != null ? current().getUrl() : "";
+            current().evaluateJavascript(
+                "(function(){var t=document.title||'';var art=document.querySelector('article')||document.querySelector('main')||document.body;var els=art.querySelectorAll('p,h1,h2,h3,h4');var html='';for(var i=0;i<els.length;i++)html+=els[i].outerHTML;return JSON.stringify({t:t,b:html});})()",
+                value -> runOnUiThread(() -> {
+                    if (value == null || value.equals("null")) {
+                        Toast.makeText(this, "Reader mode not available", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    try {
+                        String j = value;
+                        if (j.startsWith("\"")) j = j.substring(1, j.length() - 1);
+                        j = j.replace("\\\\", "BACKSLASH4").replace("\\\"", "\"").replace("\\n", "\n").replace("BACKSLASH4", "\\\\");
+                        org.json.JSONObject obj = new org.json.JSONObject(j);
+                        String t2 = obj.optString("t", "Article");
+                        String b2 = obj.optString("b", "");
+                        boolean night = BrowserPrefs.nightMode(this);
+                        String bg = night ? "#121212" : "#FAFAFA";
+                        String fg = night ? "#E0E0E0" : "#222222";
+                        String lk = night ? "#8AB4F8" : "#1A73E8";
+                        String html = "<!DOCTYPE html><html><head><meta charset='utf-8'/>"
+                            + "<meta name='viewport' content='width=device-width,initial-scale=1'/>"
+                            + "<style>body{margin:0;padding:20px;background:" + bg + ";color:" + fg + ";font-family:Georgia,serif;font-size:18px;line-height:1.7}h1,h2,h3{line-height:1.3}a{color:" + lk + "}p{margin:0 0 1em}</style></head>"
+                            + "<body><h1 style='font-size:22px;margin-bottom:1em'>" + obj.optString("t","Article") + "</h1>" + b2 + "</body></html>";
+                        current().loadDataWithBaseURL(originalUrl, html, "text/html", "utf-8", null);
+                        inReaderMode = true;
+                        Toast.makeText(this, "Reader mode ON", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e2) {
+                        Toast.makeText(this, "Could not parse page", Toast.LENGTH_SHORT).show();
+                    }
+                })
+            );
+        } else {
+            inReaderMode = false;
+            if (!originalUrl.isEmpty()) current().loadUrl(originalUrl);
+            Toast.makeText(this, "Reader mode OFF", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void newTabPrivate() {
+        if (tabs.size() >= 8) { Toast.makeText(this,"Close a tab first",Toast.LENGTH_SHORT).show(); return; }
+        android.webkit.WebView web2 = makeWeb();
+        ((TabState)web2.getTag()).isPrivate = true;
+        tabs.add(web2);
+        stack.addView(web2, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        show(tabs.size() - 1);
+        web2.loadUrl(HOME);
+        Toast.makeText(this, "Private tab opened", Toast.LENGTH_SHORT).show();
+    }
+
+    private void fetchSuggestions(String query, java.util.function.Consumer<java.util.List<String>> cb) {
+        new Thread(() -> {
+            java.util.List<String> results = new java.util.ArrayList<>();
+            try {
+                String apiUrl = "duckduckgo".equals(BrowserPrefs.searchEngine(this))
+                    ? "https://duckduckgo.com/ac/?q=" + Uri.encode(query) + "&type=list"
+                    : "https://suggestqueries.google.com/complete/search?client=firefox&q=" + Uri.encode(query);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(apiUrl).openConnection();
+                conn.setConnectTimeout(2500); conn.setReadTimeout(2500);
+                conn.setRequestProperty("User-Agent","Mozilla/5.0");
+                conn.connect();
+                if (conn.getResponseCode() == 200) {
+                    java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb2 = new StringBuilder();
+                    String ln; while ((ln = br.readLine()) != null) sb2.append(ln);
+                    conn.disconnect();
+                    String raw = sb2.toString().trim();
+                    int s2 = raw.indexOf('[', 1), e2 = raw.lastIndexOf(']');
+                    if (s2 >= 0 && e2 > s2) {
+                        String inner = raw.substring(s2 + 1, e2);
+                        for (String item : inner.split(",")) {
+                            String sg = item.trim().replace("\"","");
+                            if (!sg.isEmpty() && !sg.startsWith("{") && !sg.startsWith("[")) {
+                                results.add(sg); if (results.size() >= 5) break;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+            cb.accept(results);
+        }).start();
+    }
+
+    private void showMenuSheet() {
+        if (menuSheetScrim == null) return;
+        menuSheetScrim.setVisibility(android.view.View.VISIBLE);
+        wireMenuBtn(R.id.menu_bookmarks, v -> { hideMenuSheet(); showPageList("Bookmarks", BrowserPrefs.bookmarks(this)); });
+        wireMenuBtn(R.id.menu_history,   v -> { hideMenuSheet(); showPageList("History",   BrowserPrefs.history(this)); });
+        wireMenuBtn(R.id.menu_downloads, v -> { hideMenuSheet(); startActivity(new android.content.Intent(this, DownloadsActivity.class)); });
+        wireMenuBtn(R.id.menu_night,     v -> { boolean on = !BrowserPrefs.nightMode(this); BrowserPrefs.setNightMode(this,on); current().reload(); hideMenuSheet(); Toast.makeText(this,on?"Night on":"Night off",Toast.LENGTH_SHORT).show(); });
+        wireMenuBtn(R.id.menu_settings_btn, v -> { hideMenuSheet(); startActivity(new android.content.Intent(this, SettingsActivity.class)); });
+        wireMenuBtn(R.id.menu_add_bookmark, v -> { String pg=current().getUrl(); if(pg!=null&&!pg.startsWith("file:"))BrowserPrefs.toggleBookmark(this,state(current()).title,pg); Toast.makeText(this,"Bookmarks updated",Toast.LENGTH_SHORT).show(); hideMenuSheet(); });
+        wireMenuBtn(R.id.menu_refresh, v -> { String url=current().getUrl(); if(url==null||url.startsWith("file:"))current().loadUrl(HOME); else current().reload(); hideMenuSheet(); });
+        wireMenuBtn(R.id.menu_share, v -> { String pg=current().getUrl(); if(pg!=null&&!pg.startsWith("file:")){android.content.Intent s=new android.content.Intent(android.content.Intent.ACTION_SEND);s.setType("text/plain");s.putExtra(android.content.Intent.EXTRA_TEXT,pg);startActivity(android.content.Intent.createChooser(s,"Share"));} hideMenuSheet(); });
+        wireMenuBtn(R.id.menu_desktop, v -> { boolean next=!BrowserPrefs.desktop(this);BrowserPrefs.setDesktop(this,next);applyChromeMode(current());current().reload(); android.widget.TextView lbl=(android.widget.TextView)menuSheetScrim.findViewById(R.id.menu_desktop_label);if(lbl!=null)lbl.setText(next?"Desktop: ON":"Desktop"); });
+        wireMenuBtn(R.id.menu_clear_cache, v -> { for(android.webkit.WebView w:tabs)w.clearCache(true);Toast.makeText(this,"Cache cleared",Toast.LENGTH_SHORT).show();hideMenuSheet(); });
+        wireMenuBtn(R.id.menu_find,        v -> { hideMenuSheet(); showFind(); });
+        wireMenuBtn(R.id.menu_translate,   v -> { hideMenuSheet(); String pg=current().getUrl(); if(pg!=null&&!pg.startsWith("file:"))current().loadUrl("https://translate.google.com/translate?sl=auto&tl=en&u="+Uri.encode(pg)); });
+        wireMenuBtn(R.id.menu_reader_mode, v -> { hideMenuSheet(); toggleReaderMode(); });
+        wireMenuBtn(R.id.menu_new_private, v -> { hideMenuSheet(); newTabPrivate(); });
+        wireMenuBtn(R.id.menu_close,       v -> hideMenuSheet());
+        menuSheetScrim.setOnClickListener(v -> hideMenuSheet());
+    }
+
+    private void wireMenuBtn(int id, android.view.View.OnClickListener l) {
+        android.view.View v = menuSheetScrim.findViewById(id);
+        if (v != null) v.setOnClickListener(l);
+    }
+
+    private void hideMenuSheet() {
+        if (menuSheetScrim != null) menuSheetScrim.setVisibility(android.view.View.GONE);
+    }
+
+    private void showPageList(String title, java.util.List<String[]> rows) {
+        if (rows.isEmpty()) { Toast.makeText(this, title + " is empty", Toast.LENGTH_SHORT).show(); return; }
+        String[] labels = rows.stream().map(r -> r[0]).toArray(String[]::new);
+        new AlertDialog.Builder(this).setTitle(title)
+            .setItems(labels, (d,i) -> current().loadUrl(rows.get(i)[1]))
+            .setNegativeButton("Close", null).show();
+    }
+
 }

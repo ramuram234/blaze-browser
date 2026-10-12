@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
+    <!-- Video surface -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
@@ -12,131 +13,314 @@
         app:show_buffering="when_playing"
         app:use_controller="false" />
 
+    <!-- Gesture layer (transparent, on top of video) -->
     <View
         android:id="@+id/gesture_layer"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- HUD overlay (seek/volume/brightness text) -->
     <TextView
         android:id="@+id/hud"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="#CC0C0D10"
-        android:paddingStart="16dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="12dp"
+        android:background="#CC1A1A2E"
+        android:paddingStart="20dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="14dp"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold"
         android:visibility="gone" />
 
+    <!-- Lock icon - left side overlay -->
+    <TextView
+        android:id="@+id/btn_lock_icon"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="16dp"
+        android:background="#66000000"
+        android:gravity="center"
+        android:text="&#128274;"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- Download icon - right side overlay -->
+    <TextView
+        android:id="@+id/btn_download_overlay"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="16dp"
+        android:background="#66000000"
+        android:gravity="center"
+        android:text="&#11015;"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- Data usage meter - subtle top-right corner, shows with controls -->
+    <TextView
+        android:id="@+id/data_meter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="12dp"
+        android:background="#99000000"
+        android:paddingStart="8dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="4dp"
+        android:text="📶 0 B"
+        android:textColor="#CCFFFFFF"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+    <!-- Top bar: back + title + ... menu (UC Browser style) -->
+    <LinearLayout
+        android:id="@+id/player_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="top"
+        android:background="#88000000"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp">
+
+        <ImageButton
+            android:id="@+id/close_player"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:id="@+id/player_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:text="Video"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/player_menu_btn"
+            android:layout_width="44dp"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:text="&#8943;"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <!-- Bottom controls (UC Browser style) -->
+    <LinearLayout
+        android:id="@+id/player_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#CC000000"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp">
+
+        <!-- Time + Seek bar row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/time_current"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <SeekBar
+                android:id="@+id/seek_bar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="1000"
+                android:progressTint="#FFFFFF"
+                android:thumbTint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/time_total"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Controls row: pause, speed, PiP, CC, audio, resize -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Play/Pause -->
+            <TextView
+                android:id="@+id/btn_play_pause"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="&#9646;&#9646;"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp" />
+
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+
+            <!-- Speed -->
+            <TextView
+                android:id="@+id/btn_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="1.0x"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- PiP -->
+            <TextView
+                android:id="@+id/pip_player"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="&#9974;"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp" />
+
+            <!-- Lock -->
+            <TextView
+                android:id="@+id/btn_lock"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="&#128275;"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+
+            <!-- BG Audio -->
+            <TextView
+                android:id="@+id/btn_bg_audio"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="&#127911;"
+                android:textColor="#AAAAAA"
+                android:textSize="18sp" />
+
+            <!-- Resize/Fullscreen -->
+            <TextView
+                android:id="@+id/btn_resize"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="&#9974;"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Hint overlay (shown briefly on start) -->
     <TextView
         android:id="@+id/hint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|top"
-        android:layout_marginTop="72dp"
+        android:layout_marginTop="80dp"
         android:background="#CC0C0D10"
         android:padding="12dp"
-        android:text="Swipe left/right to seek\nLeft side: brightness\nRight side: volume"
+        android:text="Swipe left/right to seek  |  Left: brightness  |  Right: volume"
         android:textAlignment="center"
         android:textColor="#FFFFFF"
         android:textSize="13sp" />
 
-    <TextView
-        android:id="@+id/pip_player"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_gravity="end|top"
-        android:layout_margin="8dp"
-        android:background="#66000000"
-        android:gravity="center"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp"
-        android:text="PiP"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold" />
-
-    <ImageButton
-        android:id="@+id/close_player"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="start|top"
-        android:layout_margin="8dp"
-        android:background="#66000000"
-        android:contentDescription="Close"
-        android:src="@android:drawable/ic_menu_close_clear_cancel" />
-
+    <!-- Settings side panel (slides in from right, like UC Browser) -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/settings_panel"
+        android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#CC0C0D10"
+        android:layout_gravity="end|center_vertical"
+        android:background="#CC1A1A1A"
         android:orientation="vertical"
-        android:padding="12dp">
-
-        <ProgressBar
-            android:id="@+id/buffer_bar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:max="1000"
-            android:progressTint="#66FFFFFF" />
-
-        <ProgressBar
-            android:id="@+id/play_bar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:layout_marginTop="-4dp"
-            android:max="1000"
-            android:progressTint="#FF5C1B" />
+        android:padding="8dp"
+        android:visibility="gone">
 
         <TextView
-            android:id="@+id/time_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:textColor="#FFFFFF"
+            android:padding="8dp"
+            android:text="Player Settings"
+            android:textColor="#AAAAAA"
             android:textSize="12sp" />
 
-        <LinearLayout
-            android:id="@+id/player_tools"
+        <TextView
+            android:id="@+id/panel_bg_audio"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:text="Background Audio: Off"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
 
-            <TextView
-                android:id="@+id/btn_speed"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="1.0x"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold" />
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
 
-            <TextView
-                android:id="@+id/btn_lock"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Lock"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/panel_hw_decoder"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:text="HW Decoder: On"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
 
-            <TextView
-                android:id="@+id/btn_bg_audio"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="BG audio"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold" />
-        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
+        <TextView
+            android:id="@+id/panel_preload_label"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:text="Data save: Normal"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
+        <TextView
+            android:id="@+id/panel_speed_label"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:text="Speed: 1.0x"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
     </LinearLayout>
 </FrameLayout>

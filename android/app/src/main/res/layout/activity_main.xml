@@ -1,35 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/bg">
 
+    <!-- Main browser UI -->
     <LinearLayout
         android:id="@+id/browser_ui"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg"
         android:orientation="vertical">
 
+        <!-- Top address bar -->
         <LinearLayout
+            android:id="@+id/address_bar"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="@color/primary"
+            android:layout_height="52dp"
+            android:background="@color/surface"
             android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp">
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp"
+            android:elevation="2dp">
+
+            <TextView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="@drawable/search_bar_bg"
+                android:gravity="center"
+                android:text="G"
+                android:textColor="#1A73E8"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/address"
                 android:layout_width="0dp"
-                android:layout_height="40dp"
+                android:layout_height="36dp"
                 android:layout_weight="1"
-                android:background="@drawable/address_bg"
+                android:layout_marginStart="8dp"
+                android:background="@android:color/transparent"
                 android:hint="@string/address_hint"
                 android:imeOptions="actionGo"
                 android:importantForAutofill="no"
                 android:inputType="textUri"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
                 android:singleLine="true"
                 android:textColor="@color/ink"
                 android:textColorHint="@color/muted"
@@ -37,23 +52,31 @@
 
             <ImageButton
                 android:id="@+id/btn_go"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="6dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Go"
-                android:src="@drawable/ic_go" />
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Refresh"
+                android:src="@drawable/ic_reload" />
+
+            <ImageButton
+                android:id="@+id/btn_bookmark_page"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Bookmark"
+                android:src="@drawable/ic_star" />
         </LinearLayout>
 
         <ProgressBar
             android:id="@+id/progress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
+            android:layout_height="2dp"
             android:max="100"
-            android:progressTint="@color/bar"
+            android:progressTint="@color/primary"
             android:visibility="gone" />
 
+        <!-- Web content -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -72,90 +95,21 @@
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/play_chip"
                 android:gravity="center"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
                 android:text="Watch video"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
                 android:visibility="gone" />
-
-            <LinearLayout
-                android:id="@+id/tabs_panel"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#F7F2F3F5"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Windows"
-                    android:textColor="@color/ink"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_weight="1">
-
-                    <LinearLayout
-                        android:id="@+id/tab_list"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-                </ScrollView>
-
-                <Button
-                    android:id="@+id/btn_new_tab"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:backgroundTint="@color/primary"
-                    android:text="New tab"
-                    android:textColor="#FFFFFF" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/menu_panel"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#F7F2F3F5"
-                android:orientation="vertical"
-                android:padding="16dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/menu_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Menu"
-                    android:textColor="@color/ink"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_weight="1">
-
-                    <LinearLayout
-                        android:id="@+id/menu_list"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-                </ScrollView>
-            </LinearLayout>
         </FrameLayout>
 
+        <!-- Bottom nav bar - UC Browser style -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:background="@color/surface"
-            android:gravity="center">
+            android:background="@drawable/bottom_nav_bg"
+            android:gravity="center"
+            android:elevation="4dp">
 
             <ImageButton
                 android:id="@+id/btn_back"
@@ -175,29 +129,34 @@
                 android:contentDescription="Forward"
                 android:src="@drawable/ic_forward" />
 
-            <TextView
-                android:id="@+id/btn_tabs"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:gravity="center"
-                android:text="1"
-                android:textColor="@color/primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
+            <ImageButton
                 android:id="@+id/btn_menu"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:gravity="center"
-                android:text="Menu"
-                android:textColor="@color/ink"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:contentDescription="Menu"
+                android:src="@drawable/ic_menu" />
+
+            <!-- Tabs count box -->
+            <FrameLayout
+                android:id="@+id/btn_tabs_wrapper"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless">
+                <TextView
+                    android:id="@+id/btn_tabs"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/ic_tabs_bg"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textColor="#66707A"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
 
             <ImageButton
                 android:id="@+id/btn_home"
@@ -207,18 +166,260 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Home"
                 android:src="@drawable/ic_home" />
-
-            <ImageButton
-                android:id="@+id/btn_reload"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Reload"
-                android:src="@drawable/ic_reload" />
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Tabs panel - dark card view -->
+    <FrameLayout
+        android:id="@+id/tabs_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/tab_bg"
+        android:visibility="gone">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="60dp"
+            android:layout_marginBottom="80dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+            <LinearLayout
+                android:id="@+id/tab_list"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <!-- Bottom: ghost, FAB +, undo -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_gravity="bottom"
+            android:background="#2D2F33"
+            android:gravity="center"
+            android:padding="8dp">
+
+            <ImageButton
+                android:id="@+id/btn_private_tab"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:contentDescription="Private"
+                android:src="@drawable/ic_ghost" />
+
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp">
+                <TextView
+                    android:id="@+id/btn_new_tab"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/fab_bg"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#FFFFFF"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <ImageButton
+                android:id="@+id/btn_undo_close"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:contentDescription="Undo"
+                android:src="@drawable/ic_back" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Menu bottom sheet scrim -->
+    <FrameLayout
+        android:id="@+id/menu_sheet_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/menu_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/sheet_bg"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <!-- Header row: avatar + title + ghost -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/fab_bg">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="B"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Blaze Browser"
+                        android:textColor="@color/ink"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Private &amp; Fast"
+                        android:textColor="@color/muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btn_private_mode"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/shortcut_bg"
+                    android:contentDescription="Private"
+                    android:src="@drawable/ic_ghost" />
+            </LinearLayout>
+
+            <!-- Row 1: Bookmarks, History, Downloads, Night, Settings -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingBottom="12dp">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="6dp">
+                    <FrameLayout android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/circle_teal">
+                        <ImageButton android:id="@+id/menu_bookmarks" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent" android:src="@drawable/ic_bookmark_teal" android:contentDescription="Bookmarks" android:scaleType="centerInside"/>
+                    </FrameLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bookmarks" android:textSize="10sp" android:textColor="@color/ink" android:layout_marginTop="5dp" android:gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="6dp">
+                    <FrameLayout android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/circle_yellow">
+                        <ImageButton android:id="@+id/menu_history" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent" android:src="@drawable/ic_history_clock" android:contentDescription="History" android:scaleType="centerInside"/>
+                    </FrameLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="History" android:textSize="10sp" android:textColor="@color/ink" android:layout_marginTop="5dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="6dp">
+                    <FrameLayout android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/circle_blue">
+                        <ImageButton android:id="@+id/menu_downloads" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent" android:src="@drawable/ic_download_arrow" android:contentDescription="Downloads" android:scaleType="centerInside"/>
+                    </FrameLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Downloads" android:textSize="10sp" android:textColor="@color/ink" android:layout_marginTop="5dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="6dp">
+                    <FrameLayout android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/circle_pink">
+                        <ImageButton android:id="@+id/menu_night" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent" android:src="@drawable/ic_moon" android:contentDescription="Night" android:scaleType="centerInside"/>
+                    </FrameLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Night" android:textSize="10sp" android:textColor="@color/ink" android:layout_marginTop="5dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="6dp">
+                    <FrameLayout android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/circle_purple">
+                        <ImageButton android:id="@+id/menu_settings_btn" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent" android:src="@drawable/ic_settings_gear" android:contentDescription="Settings" android:scaleType="centerInside"/>
+                    </FrameLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Settings" android:textSize="10sp" android:textColor="@color/ink" android:layout_marginTop="5dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="16dp" android:layout_marginEnd="16dp"/>
+
+            <!-- Row 2: Bookmark, Refresh, Share, Desktop, Clear -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="8dp">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_add_bookmark" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_star" android:contentDescription="Bookmark"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bookmark" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp" android:gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_refresh" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_reload" android:contentDescription="Refresh"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Refresh" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_share" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_share" android:contentDescription="Share"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Share" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_desktop" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_home" android:contentDescription="Desktop"/>
+                    <TextView android:id="@+id/menu_desktop_label" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Desktop" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_clear_cache" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_ghost" android:contentDescription="Clear"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Clear" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Close chevron -->
+
+            <!-- Row 3: Find, Translate, Reader, Private tab -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="4dp" android:paddingEnd="4dp" android:paddingTop="4dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_find" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_go" android:contentDescription="Find"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Find" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_translate" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_menu" android:contentDescription="Translate"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Translate" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_reader_mode" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_star" android:contentDescription="Reader"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reader" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="8dp">
+                    <ImageButton android:id="@+id/menu_new_private" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_ghost" android:contentDescription="Private"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Private" android:textSize="10sp" android:textColor="@color/muted" android:layout_marginTop="4dp"/>
+                </LinearLayout>
+                <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+            </LinearLayout>
+            <TextView
+                android:id="@+id/menu_close"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center"
+                android:text="⌄"
+                android:textColor="@color/muted"
+                android:textSize="22sp"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Fullscreen video holder -->
     <FrameLayout
         android:id="@+id/fullscreen_holder"
         android:layout_width="match_parent"
@@ -226,73 +427,14 @@
         android:background="#000000"
         android:visibility="gone">
 
-        <FrameLayout
-            android:id="@+id/fs_video"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <View
-            android:id="@+id/fs_gestures"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <TextView
-            android:id="@+id/fs_hud"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="#CC0C0D10"
-            android:padding="12dp"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/fs_chrome"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#66000000"
-            android:gravity="center_vertical"
-            android:padding="8dp">
-
-            <ImageButton
-                android:id="@+id/fs_close"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Close video"
-                android:src="@android:drawable/ic_menu_close_clear_cancel" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Blaze player"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/fs_pip"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:gravity="center"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:text="PiP"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/fs_rotate"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:gravity="center"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:text="Rotate"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold" />
+        <FrameLayout android:id="@+id/fs_video" android:layout_width="match_parent" android:layout_height="match_parent"/>
+        <View android:id="@+id/fs_gestures" android:layout_width="match_parent" android:layout_height="match_parent"/>
+        <TextView android:id="@+id/fs_hud" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:background="#CC0C0D10" android:padding="12dp" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" android:visibility="gone"/>
+        <LinearLayout android:id="@+id/fs_chrome" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#66000000" android:gravity="center_vertical" android:padding="8dp">
+            <ImageButton android:id="@+id/fs_close" android:layout_width="48dp" android:layout_height="48dp" android:background="@android:color/transparent" android:contentDescription="Close" android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Blaze Player" android:textColor="#FFFFFF" android:textStyle="bold"/>
+            <TextView android:id="@+id/fs_pip" android:layout_width="wrap_content" android:layout_height="48dp" android:gravity="center" android:paddingStart="12dp" android:paddingEnd="12dp" android:text="PiP" android:textColor="#FFFFFF" android:textStyle="bold"/>
+            <TextView android:id="@+id/fs_rotate" android:layout_width="wrap_content" android:layout_height="48dp" android:gravity="center" android:paddingStart="12dp" android:paddingEnd="12dp" android:text="Rotate" android:textColor="#FFFFFF" android:textStyle="bold"/>
         </LinearLayout>
     </FrameLayout>
 </FrameLayout>

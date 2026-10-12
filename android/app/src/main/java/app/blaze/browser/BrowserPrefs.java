@@ -159,4 +159,79 @@ public final class BrowserPrefs {
         }
         return rows;
     }
+
+    public static boolean antiFingerprint(Context context) {
+        return prefs(context).getBoolean("anti_fp", true);
+    }
+
+    public static void setAntiFingerprint(Context context, boolean on) {
+        prefs(context).edit().putBoolean("anti_fp", on).apply();
+        AdBlock.antiFingerprint = on;
+    }
+
+    public static boolean downloadBoost(Context context) {
+        return prefs(context).getBoolean("dl_boost", true);
+    }
+
+    public static void setDownloadBoost(Context context, boolean on) {
+        prefs(context).edit().putBoolean("dl_boost", on).apply();
+    }
+
+    /** Video buffer cache size in bytes. Default 500 MB. */
+    public static long videoCacheSize(Context context) {
+        return prefs(context).getLong("video_cache_mb", 500L) * 1024L * 1024L;
+    }
+
+    public static void setVideoCacheMb(Context context, long mb) {
+        prefs(context).edit().putLong("video_cache_mb", mb).apply();
+    }
+
+    /** 0=Off (5s), 1=Normal (5min), 2=Full (15min), 3=Custom */
+    public static int videoPreloadMode(Context context) {
+        return prefs(context).getInt("video_preload", 1); // default Normal
+    }
+
+    public static void setVideoPreloadMode(Context context, int mode) {
+        prefs(context).edit().putInt("video_preload", Math.max(0, Math.min(2, mode))).apply();
+    }
+
+    /** Custom buffer duration in seconds (mode 3). Range 60-900. */
+    public static int videoPreloadCustomSec(Context context) {
+        return prefs(context).getInt("video_preload_custom_sec", 300); // default 5 min
+    }
+
+    public static void setVideoPreloadCustomSec(Context context, int seconds) {
+        int clamped = Math.max(60, Math.min(900, seconds));
+        prefs(context).edit().putInt("video_preload_custom_sec", clamped).apply();
+    }
+
+    /** Whether to warn when playing video on mobile data. */
+    public static boolean warnMobileData(Context context) {
+        return prefs(context).getBoolean("warn_mobile_data", true);
+    }
+
+    public static void setWarnMobileData(Context context, boolean on) {
+        prefs(context).edit().putBoolean("warn_mobile_data", on).apply();
+    }
+
+    public static boolean httpsOnly(Context context) { return prefs(context).getBoolean("https_only", false); }
+    public static void setHttpsOnly(Context context, boolean on) { prefs(context).edit().putBoolean("https_only", on).apply(); }
+
+    public static boolean blockThirdPartyCookies(Context context) { return prefs(context).getBoolean("block_3p", true); }
+    public static void setBlockThirdPartyCookies(Context context, boolean on) { prefs(context).edit().putBoolean("block_3p", on).apply(); }
+
+    public static boolean blockFonts(Context context) { return prefs(context).getBoolean("block_fonts", false); }
+    public static void setBlockFonts(Context context, boolean on) { prefs(context).edit().putBoolean("block_fonts", on).apply(); }
+
+    public static boolean disableJs(Context context) { return prefs(context).getBoolean("disable_js", false); }
+    public static void setDisableJs(Context context, boolean on) { prefs(context).edit().putBoolean("disable_js", on).apply(); }
+
+    public static boolean blockAutoplay(Context context) { return prefs(context).getBoolean("block_autoplay", true); }
+    public static void setBlockAutoplay(Context context, boolean on) { prefs(context).edit().putBoolean("block_autoplay", on).apply(); }
+
+    public static String searchEngine(Context context) { return prefs(context).getString("search_engine", "google"); }
+    public static void setSearchEngine(Context context, String e) { prefs(context).edit().putString("search_engine", e).apply(); }
+
+    public static boolean readerMode(Context context) { return prefs(context).getBoolean("reader_mode", false); }
+    public static void setReaderMode(Context context, boolean on) { prefs(context).edit().putBoolean("reader_mode", on).apply(); }
 }

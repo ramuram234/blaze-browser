@@ -1,6 +1,9 @@
 package app.blaze.browser;
 
+import android.app.AlertDialog;
 import android.app.PictureInPictureParams;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
@@ -48,8 +51,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private TextView hud;
     private TextView hint;
     private TextView timeLabel;
-    private ProgressBar playBar;
-    private ProgressBar bufferBar;
+    private android.widget.SeekBar seekBar;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private String mode = "none";
     private float downX;
@@ -64,7 +66,8 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private static final float[] SPEEDS = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f};
     private TextView speedBtn;
     private TextView lockBtn;
-    private View playerTools;
+    private android.widget.TextView dataMeter;
+    private long sessionDataBytes = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,7 +75,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_player);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        ArrayList<String> urls = getIntent().getStringArrayListExtra(EXTRA_URLS);
+        final ArrayList<String> urls = getIntent().getStringArrayListExtra(EXTRA_URLS);
         if (urls == null || urls.isEmpty()) {
             finish();
             return;
@@ -83,10 +86,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         hud = findViewById(R.id.hud);
         hint = findViewById(R.id.hint);
-        timeLabel = findViewById(R.id.time_label);
-        playBar = findViewById(R.id.play_bar);
-        bufferBar = findViewById(R.id.buffer_bar);
-        ImageButton close = findViewById(R.id.close_player);
+        timeLabel = (TextView) findViewById(R.id.time_current);
+        seekBar = (android.widget.SeekBar) findViewById(R.id.seek_bar);
+
+        dataMeter = (android.widget.TextView) findViewById(R.id.data_meter);
+        ImageButton close = (ImageButton) findViewById(R.id.close_player);
         View layer = findViewById(R.id.gesture_layer);
         PlayerView playerView = findViewById(R.id.player_view);
 
@@ -102,8 +106,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 .setConnectTimeoutMs(8000)
                 .setReadTimeoutMs(12000);
         DefaultDataSource.Factory dataSource = new DefaultDataSource.Factory(this, http);
+        int preloadMode = BrowserPrefs.videoPreloadMode(this);
+        int maxBufMs = preloadMode == 0 ? 5_000 : preloadMode == 1 ? 300_000 : 900_000;
+        int minBufMs = preloadMode == 0 ? 1_000 : 5_000;
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
-                .setBufferDurationsMs(2_000, 60_000, 500, 1_500)
+                .setBufferDurationsMs(minBufMs, maxBufMs, 800, 1_500)
                 .build();
 
         player = new ExoPlayer.Builder(this)
@@ -143,7 +150,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
         bgAudio = BrowserPrefs.backgroundAudio(this);
         speedBtn = findViewById(R.id.btn_speed);
         lockBtn = findViewById(R.id.btn_lock);
-        playerTools = findViewById(R.id.player_tools);
         TextView bgBtn = findViewById(R.id.btn_bg_audio);
         bgBtn.setText(bgAudio ? "BG on" : "BG audio");
         speedBtn.setOnClickListener(v -> {
@@ -166,8 +172,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
         });
 
         close.setOnClickListener(v -> finish());
+        android.view.View dlBtn = findViewById(R.id.btn_download_overlay);
+        if (dlBtn != null) dlBtn.setOnClickListener(v -> downloadCurrentVideo());
         layer.setOnTouchListener((v, event) -> onGesture(v, event));
         handler.postDelayed(() -> hint.setVisibility(View.GONE), 2800);
+        checkMobileDataAndWarn();
         handler.post(tick);
     }
 
@@ -179,11 +188,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
             long pos = player.getCurrentPosition();
             long buf = player.getBufferedPosition();
             if (dur > 0) {
-                playBar.setProgress((int) (pos * 1000 / dur));
-                bufferBar.setProgress((int) (Math.min(buf, dur) * 1000 / dur));
+                if (seekBar != null) seekBar.setProgress((int) (pos * 1000 / dur));
+                
                 timeLabel.setText(format(pos) + " / " + format(dur) + "   buffered " + (buf * 100 / dur) + "%");
             } else {
-                timeLabel.setText(player.getPlaybackState() == Player.STATE_BUFFERING ? "Buffering…" : format(pos));
+                timeLabel.setText(player.getPlaybackState() == Player.STATE_BUFFERING ? "BufferingΓÇª" : format(pos));
             }
             handler.postDelayed(this, 250);
         }
@@ -315,6 +324,44 @@ public class VideoPlayerActivity extends AppCompatActivity {
         return String.format(Locale.US, "%d:%02d", s / 60, s % 60);
     }
 
+
+
+    private void downloadCurrentVideo() {
+        ArrayList<String> videoUrls2 = getIntent().getStringArrayListExtra(EXTRA_URLS);
+        if (videoUrls2 == null || videoUrls2.isEmpty()) return;
+        String url = videoUrls2.get(0);
+        if (url == null || url.isEmpty()) return;
+        String ref = getIntent().getStringExtra(EXTRA_REFERER);
+        String ua2 = getIntent().getStringExtra(EXTRA_UA);
+        BlazeDownloadManager.get().enqueue(url, ref, ua2, "video");
+        Toast.makeText(this, "Download queued", Toast.LENGTH_SHORT).show();
+    }
+    private void checkMobileDataAndWarn() {
+        if (!BrowserPrefs.warnMobileData(this)) return;
+        if (!isOnMobileData()) return;
+        int mode = BrowserPrefs.videoPreloadMode(this);
+        String info = mode == 0 ? "5s (minimum)" : mode == 1 ? "5 min (~100 MB/hr)" : "15 min (~300 MB/hr)";
+        new AlertDialog.Builder(this)
+            .setTitle("Playing on Mobile Data")
+            .setMessage("Video will use mobile data.\nBuffer: " + info)
+            .setPositiveButton("Continue", null)
+            .setNeutralButton("Set to Off", (d,w) -> BrowserPrefs.setVideoPreloadMode(this, 0))
+            .setNegativeButton("Don't warn again", (d,w) -> BrowserPrefs.setWarnMobileData(this, false))
+            .setCancelable(false).show();
+    }
+
+    private boolean isOnMobileData() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            android.net.Network net = cm.getActiveNetwork();
+            if (net == null) return false;
+            NetworkCapabilities cap = cm.getNetworkCapabilities(net);
+            return cap != null && cap.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    && !cap.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+        }
+        return false;
+    }
     @Override
     protected void onStop() {
         super.onStop();

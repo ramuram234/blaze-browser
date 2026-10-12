@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:gravity="center_vertical" android:paddingStart="4dp"
+        android:background="@color/surface" android:elevation="1dp">
+        <ImageButton android:id="@+id/btn_back" android:layout_width="48dp"
+            android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back" android:contentDescription="Back"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Ads Block Setting" android:textSize="18sp" android:textColor="@color/ink"
+            android:textStyle="bold" android:layout_marginStart="4dp"/>
+    
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mobile Data Warning" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Warn before playing video on mobile data" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+        <Switch android:id="@+id/switch_mobile_warn" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="Ad Blocker" android:textSize="16sp" android:textColor="@color/ink"/>
+        <Switch android:id="@+id/switch_ad_blocker" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mobile Data Warning" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Warn before playing video on mobile data" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+        <Switch android:id="@+id/switch_mobile_warn" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Powerful Ad Blocker" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Block sticky Ads and trackers" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mobile Data Warning" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Warn before playing video on mobile data" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+        <Switch android:id="@+id/switch_mobile_warn" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>
+        <Switch android:id="@+id/switch_powerful_ads" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mobile Data Warning" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Warn before playing video on mobile data" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+        <Switch android:id="@+id/switch_mobile_warn" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Anti Fingerprinting" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Prevent sites from identifying your device" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mobile Data Warning" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Warn before playing video on mobile data" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+        <Switch android:id="@+id/switch_mobile_warn" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>
+        <Switch android:id="@+id/switch_fingerprint" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mobile Data Warning" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Warn before playing video on mobile data" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+        <Switch android:id="@+id/switch_mobile_warn" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/surface" android:gravity="center_vertical"
+        android:minHeight="72dp" android:padding="20dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Mobile Data Warning" android:textSize="16sp" android:textColor="@color/ink"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Warn before playing video on mobile data" android:textSize="13sp"
+                android:textColor="@color/muted" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+        <Switch android:id="@+id/switch_mobile_warn" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>

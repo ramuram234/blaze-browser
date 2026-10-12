@@ -1,98 +1,123 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Blaze</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Blaze Browser</title>
   <style>
-    :root { color-scheme: light; }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      font-family: "Segoe UI", Roboto, sans-serif;
-      background: #f2f3f5;
-      color: #16181c;
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(180deg, #E8F1FB 0%, #FFFFFF 40%);
+      min-height: 100vh;
     }
-    .wrap { padding: 28px 20px 32px; }
-    .mark {
-      width: 56px; height: 56px; border-radius: 18px;
-      background: #ff5c1b; color: #fff;
-      display: grid; place-items: center;
-      font-weight: 800; font-size: 22px;
+    .header { padding: 28px 20px 0; }
+    .brand { font-size: 26px; font-weight: 300; color: #9DB8D8; letter-spacing: -0.02em; }
+    .search-bar {
+      margin: 18px 16px 0;
+      background: #FFFFFF;
+      border-radius: 28px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
     }
-    h1 { margin: 14px 0 0; font-size: 28px; letter-spacing: -0.03em; }
-    p.sub { margin: 6px 0 0; color: #66707a; font-size: 14px; }
-    form { margin-top: 22px; }
-    input {
-      width: 100%; height: 48px; border: 0; border-radius: 16px;
-      background: #fff; padding: 0 16px; font-size: 16px;
-      box-shadow: 0 8px 24px rgba(22,24,28,.06);
+    .g-logo {
+      width: 24px; height: 24px;
+      font-size: 14px; font-weight: 700;
+      color: #1A73E8;
+      border: 1.5px solid #E0E0E0;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-    .go {
-      margin-top: 10px; width: 100%; height: 48px; border: 0; border-radius: 16px;
-      background: #ff5c1b; color: #fff; font-weight: 700; font-size: 16px;
+    .search-bar input {
+      flex: 1; border: none; outline: none;
+      background: transparent; font-size: 15px;
+      color: #444; padding: 0 10px;
     }
-    h2 { margin: 26px 0 10px; font-size: 13px; color: #66707a; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    button.tile {
-      border: 0; background: transparent; padding: 0; color: inherit;
+    .search-bar input::placeholder { color: #9AA0A6; }
+    .search-icon { font-size: 18px; color: #9AA0A6; cursor: pointer; }
+    .shortcuts { padding: 22px 16px 0; }
+    .shortcuts-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
     }
-    .ico {
-      width: 52px; height: 52px; margin: 0 auto; border-radius: 16px;
-      background: #fff; display: grid; place-items: center;
-      font-weight: 800; color: #ff5c1b;
-      box-shadow: 0 8px 24px rgba(22,24,28,.06);
+    .shortcut-item {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 2px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
-    .tile span { display: block; margin-top: 6px; font-size: 11px; color: #66707a; }
-    .hint {
-      margin-top: 28px; background: #fff; border-radius: 16px; padding: 14px 16px;
-      font-size: 13px; line-height: 1.45; color: #3d4650;
-      box-shadow: 0 8px 24px rgba(22,24,28,.06);
+    .shortcut-item:active { opacity: 0.7; }
+    .shortcut-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: #FFFFFF;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+      margin-bottom: 6px; overflow: hidden;
     }
-    .hint b { color: #16181c; }
+    .shortcut-icon img { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; }
+    .shortcut-label {
+      font-size: 11px; color: #444;
+      text-align: center; max-width: 56px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .add-btn .shortcut-icon {
+      background: transparent; border: 2px dashed #CCC; box-shadow: none;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="mark">B</div>
-    <h1>Blaze 1.4</h1>
-    <p class="sub">New: night mode, boost, preload, video speed and lock.</p>
-    <form id="search">
-      <input id="q" name="q" placeholder="Search or type a site" autocomplete="off" />
-      <button class="go" type="submit">Search</button>
-    </form>
-    <h2>Shortcuts</h2>
-    <div class="grid" id="shortcuts"></div>
-    <div class="hint">
-      This is version <b>1.4</b>. Open <b>Menu</b> for night mode, speed boost, preload, image quality, and stronger ad block.
-      In the video player use <b>Speed</b>, <b>Lock</b>, and <b>BG audio</b>.
-    </div>
+  <div class="header">
+    <div class="brand">Blaze Browser</div>
   </div>
+
+  <form class="search-bar" id="sf">
+    <div class="g-logo">G</div>
+    <input id="q" type="text" placeholder="Search or Enter URL" autocomplete="off" autocorrect="off"/>
+    <span class="search-icon">&#x1F50D;</span>
+  </form>
+
+  <div class="shortcuts">
+    <div class="shortcuts-grid" id="grid"></div>
+  </div>
+
   <script>
-    const sites = [
-      ["Wikipedia", "https://en.wikipedia.org", "W"],
-      ["YouTube", "https://m.youtube.com", "Y"],
-      ["Reddit", "https://www.reddit.com", "R"],
-      ["BBC", "https://www.bbc.com/news", "B"],
-      ["GitHub", "https://github.com", "G"],
-      ["MDN", "https://developer.mozilla.org", "M"],
-      ["Archive", "https://archive.org", "A"],
-      ["DDG", "https://duckduckgo.com", "D"]
+    var S = [
+      ["Google",    "https://www.google.com",                     "google.com"],
+      ["YouTube",   "https://m.youtube.com",                      "youtube.com"],
+      ["Wikipedia", "https://en.wikipedia.org/wiki/Main_Page",    "wikipedia.org"],
+      ["Reddit",    "https://www.reddit.com",                     "reddit.com"],
+      ["X",         "https://x.com",                             "x.com"],
+      ["GitHub",    "https://github.com",                         "github.com"],
+      ["DuckDuckGo","https://duckduckgo.com",                     "duckduckgo.com"],
+      ["Gmail",     "https://mail.google.com",                    "gmail.com"],
+      ["Maps",      "https://maps.google.com",                    "maps.google.com"],
+      ["Add sites", null,                                         null]
     ];
-    const grid = document.getElementById("shortcuts");
-    sites.forEach(([name, url, letter]) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "tile";
-      b.innerHTML = '<div class="ico">' + letter + '</div><span>' + name + '</span>';
-      b.addEventListener("click", () => BlazeBridge.open(url));
-      grid.appendChild(b);
+    var g = document.getElementById('grid');
+    S.forEach(function(s) {
+      var d = document.createElement('div');
+      d.className = 'shortcut-item' + (s[2] ? '' : ' add-btn');
+      d.innerHTML = '<div class="shortcut-icon">' +
+        (s[2]
+          ? '<img src="https://www.google.com/s2/favicons?domain='+s[2]+'&sz=64" onerror="this.style.display=\'none\'"/>'
+          : '<span style="font-size:22px;color:#CCC">+</span>') +
+        '</div><div class="shortcut-label">' + s[0] + '</div>';
+      if (s[1]) { d.onclick = function() { BlazeBridge.open(s[1]); }; }
+      g.appendChild(d);
     });
-    document.getElementById("search").addEventListener("submit", (e) => {
+    document.getElementById('sf').onsubmit = function(e) {
       e.preventDefault();
-      const q = document.getElementById("q").value.trim();
+      var q = document.getElementById('q').value.trim();
       if (q) BlazeBridge.open(q);
-    });
+    };
+    document.querySelector('.search-icon').onclick = function() {
+      var q = document.getElementById('q').value.trim();
+      if (q) BlazeBridge.open(q);
+    };
   </script>
 </body>
 </html>

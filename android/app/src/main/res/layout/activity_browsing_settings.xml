@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:gravity="center_vertical" android:paddingStart="4dp"
+        android:background="@color/surface" android:elevation="1dp">
+        <ImageButton android:id="@+id/btn_back" android:layout_width="48dp"
+            android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back" android:contentDescription="Back"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Browsing Settings" android:textSize="18sp" android:textColor="@color/ink"
+            android:textStyle="bold" android:layout_marginStart="4dp"/>
+    </LinearLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider"/>
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@color/surface">
+            <LinearLayout android:id="@+id/row_image_quality" android:layout_width="match_parent"
+                android:layout_height="64dp" android:gravity="center_vertical"
+                android:paddingStart="20dp" android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Image Quality"
+                    android:textSize="15sp" android:textColor="@color/ink"/>
+                <TextView android:id="@+id/label_image_quality" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="Medium"
+                    android:textSize="14sp" android:textColor="@color/muted"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="  ..." android:textColor="@color/muted"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Night Mode" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_night" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Desktop Site" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_desktop" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Preload Pages" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_preload" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Speed Boost" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_boost" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Background Audio" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_bg_audio" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Download Boost" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="8 threads + save from buffer" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <Switch android:id="@+id/switch_dl_boost" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:id="@+id/row_video_preload" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:gravity="center_vertical"
+                android:paddingStart="20dp" android:paddingEnd="20dp" android:minHeight="64dp"
+                android:background="?attr/selectableItemBackground">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Video Preload" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:id="@+id/label_preload_desc" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="30s buffer — balanced"
+                        android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <TextView android:id="@+id/label_preload_mode" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:text="Normal"
+                    android:textSize="14sp" android:textColor="@color/primary"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:id="@+id/row_cache_size" android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Video Buffer Size" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Space for buffered videos" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <TextView android:id="@+id/label_cache_size" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="500 MB" android:textSize="14sp" android:textColor="@color/muted"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="  ..." android:textColor="@color/muted"/>
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="HTTPS Only" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Force secure connections" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <Switch android:id="@+id/switch_https_only" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Block Third-Party Cookies" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Stops cross-site tracking" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <Switch android:id="@+id/switch_block_3p" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Block Web Fonts" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Saves data, faster pages" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <Switch android:id="@+id/switch_block_fonts" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Disable JavaScript" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fastest but breaks some sites" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <Switch android:id="@+id/switch_disable_js" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Block Autoplay" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Prevent silent auto-playing media" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <Switch android:id="@+id/switch_block_autoplay" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <LinearLayout android:id="@+id/row_search_engine" android:layout_width="match_parent" android:layout_height="64dp" android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp" android:background="?attr/selectableItemBackground">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Search Engine" android:textSize="15sp" android:textColor="@color/ink"/>
+                <TextView android:id="@+id/label_search_engine" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Google" android:textSize="14sp" android:textColor="@color/primary"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
