@@ -69,7 +69,15 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private TextView speedBtn;
     private TextView lockBtn;
     private android.widget.TextView dataMeter;
-    private long sessionDataBytes = 0;
+    private android.widget.TextView timeTotalView;
+    private android.view.View dlBtn;
+    private android.view.View controlsTop;
+    private android.view.View controlsBottom;
+    private boolean                controlsVisible = true;
+    private long                   sessionDataBytes = 0;
+    private final Runnable hideControlsRunnable = () -> {
+        if (player != null && player.isPlaying()) hideControls();
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -91,7 +99,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
         timeLabel = (TextView) findViewById(R.id.time_current);
         seekBar = (android.widget.SeekBar) findViewById(R.id.seek_bar);
 
-        dataMeter = (android.widget.TextView) findViewById(R.id.data_meter);
+        dataMeter      = (android.widget.TextView) findViewById(R.id.data_meter);
+        timeTotalView  = (android.widget.TextView) findViewById(R.id.time_total);
+        dlBtn          = (android.view.View)       findViewById(R.id.btn_download_overlay);
+        controlsTop    = (android.view.View)       findViewById(R.id.player_top_bar);
+        controlsBottom = (android.view.View)       findViewById(R.id.player_bottom);
         ImageButton close = (ImageButton) findViewById(R.id.close_player);
         View layer = findViewById(R.id.gesture_layer);
         PlayerView playerView = findViewById(R.id.player_view);
@@ -211,6 +223,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
         if (dlBtn != null) dlBtn.setOnClickListener(v -> downloadCurrentVideo());
         layer.setOnTouchListener((v, event) -> onGesture(v, event));
         handler.postDelayed(() -> hint.setVisibility(View.GONE), 2800);
+        // Start with controls visible, auto-hide after 3.5s
+        showControls();
+        // Show download button
+        if (dlBtn != null) dlBtn.setVisibility(View.VISIBLE);
         checkMobileDataAndWarn();
         handler.post(tick);
     }
@@ -224,10 +240,20 @@ public class VideoPlayerActivity extends AppCompatActivity {
             long buf = player.getBufferedPosition();
             if (dur > 0) {
                 if (seekBar != null && !seeking) seekBar.setProgress((int) (pos * 1000 / dur));
-                
-                timeLabel.setText(format(pos) + " / " + format(dur) + "   buffered " + (buf * 100 / dur) + "%");
+                if (timeLabel != null) timeLabel.setText(format(pos));
+                if (timeTotalView != null) timeTotalView.setText(format(dur));
             } else {
-                timeLabel.setText(player.getPlaybackState() == Player.STATE_BUFFERING ? "Buffering..." : format(pos));
+                if (timeLabel != null) timeLabel.setText(
+                    player.getPlaybackState() == Player.STATE_BUFFERING ? "..." : format(pos));
+            }
+            // Data meter: estimate from buffered duration ahead
+            if (dur > 0 && player.getBufferedPosition() > pos) {
+                sessionDataBytes += (long)((player.getBufferedPosition() - pos) * 0.001 * 31250L);
+                if (sessionDataBytes > dur * 31250L) sessionDataBytes = dur * 31250L; // cap
+            }
+            if (dataMeter != null && controlsVisible && sessionDataBytes > 1024) {
+                dataMeter.setVisibility(View.VISIBLE);
+                dataMeter.setText("\uD83D\uDCF6 " + fmtDataBytes(sessionDataBytes));
             }
             handler.postDelayed(this, 250);
         }
@@ -310,8 +336,15 @@ public class VideoPlayerActivity extends AppCompatActivity {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 if (!moved) {
-                    if (player.isPlaying()) player.pause();
-                    else player.play();
+                    if (!controlsVisible) {
+                        showControls();
+                    } else {
+                        if (player.isPlaying()) player.pause(); else player.play();
+                        resetAutoHide();
+                        // Flash play/pause indicator
+                        showHud(player.isPlaying() ? "\u23F8" : "\u25B6");
+                        handler.postDelayed(() -> hud.setVisibility(View.GONE), 600);
+                    }
                 }
                 mode = "none";
                 handler.postDelayed(() -> hud.setVisibility(View.GONE), 280);
@@ -371,6 +404,41 @@ public class VideoPlayerActivity extends AppCompatActivity {
         BlazeDownloadManager.get().enqueue(url, ref, ua2, "video");
         Toast.makeText(this, "Download queued", Toast.LENGTH_SHORT).show();
     }
+
+    // ── Controls visibility ───────────────────────────────────────────────────
+    private void showControls() {
+        if (controlsTop    != null) controlsTop.setVisibility(View.VISIBLE);
+        if (controlsBottom != null) controlsBottom.setVisibility(View.VISIBLE);
+        if (dlBtn          != null) dlBtn.setVisibility(View.VISIBLE);
+        if (dataMeter      != null && sessionDataBytes > 0) dataMeter.setVisibility(View.VISIBLE);
+        controlsVisible = true;
+        resetAutoHide();
+    }
+
+    private void hideControls() {
+        if (controlsTop    != null) controlsTop.setVisibility(View.GONE);
+        if (controlsBottom != null) controlsBottom.setVisibility(View.GONE);
+        if (dataMeter      != null) dataMeter.setVisibility(View.GONE);
+        controlsVisible = false;
+        handler.removeCallbacks(hideControlsRunnable);
+    }
+
+    private void resetAutoHide() {
+        handler.removeCallbacks(hideControlsRunnable);
+        handler.postDelayed(hideControlsRunnable, 3500);
+    }
+
+    private static String fmtDataBytes(long bytes) {
+        if (bytes < 1024)           return bytes + " B";
+        if (bytes < 1024 * 1024)    return String.format(java.util.Locale.US,"%.0f KB", bytes/1024f);
+        return String.format(java.util.Locale.US,"%.1f MB", bytes/1024f/1024f);
+    }
+
+    private static String fmtSpeed(long bps) {
+        if (bps < 1_000_000) return String.format(java.util.Locale.US,"%.0f Kbps", bps/1000f);
+        return String.format(java.util.Locale.US,"%.1f Mbps", bps/1_000_000f);
+    }
+
     private void checkMobileDataAndWarn() {
         if (!BrowserPrefs.warnMobileData(this)) return;
         if (!isOnMobileData()) return;

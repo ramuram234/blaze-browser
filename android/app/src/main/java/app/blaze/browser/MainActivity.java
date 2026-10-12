@@ -409,35 +409,102 @@ public class MainActivity extends AppCompatActivity {
 
     private void showTabs() {
         tabList.removeAllViews();
+        int dp8  = (int)(8  * getResources().getDisplayMetrics().density);
+        int dp12 = (int)(12 * getResources().getDisplayMetrics().density);
+        int dp16 = (int)(16 * getResources().getDisplayMetrics().density);
+        int dp20 = (int)(20 * getResources().getDisplayMetrics().density);
+        int dp48 = (int)(48 * getResources().getDisplayMetrics().density);
+
         for (int i = 0; i < tabs.size(); i++) {
             final int tabIndex = i;
             TabState state = state(tabs.get(i));
-            String url = tabs.get(i).getUrl();
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setPadding(12, 18, 12, 18);
-            TextView label = new TextView(this);
-            label.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
-            String title = state.title == null ? "Tab" : state.title;
+            String url   = tabs.get(i).getUrl();
+            String title = (state.title == null || state.title.isEmpty()) ? "New Tab" : state.title;
             if (url == null || url.startsWith("file:")) title = "Home";
-            label.setText(title);
-            label.setTextColor(0xFF16181C);
-            label.setTextSize(15);
-            label.setOnClickListener(v -> {
-                hideTabs();
-                show(tabIndex);
-            });
-            TextView close = new TextView(this);
-            close.setText("Close");
-            close.setTextColor(0xFF9A2E00);
-            close.setPadding(16, 0, 0, 0);
+
+            // Row container
+            android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+            row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(dp16, dp12, dp12, dp12);
+            row.setMinimumHeight(dp48 + dp8);
+            // Highlight active tab
+            if (i == index) {
+                row.setBackgroundColor(0xFF2A3A4A);
+            } else {
+                android.util.TypedValue tv = new android.util.TypedValue();
+                getTheme().resolveAttribute(android.R.attr.selectableItemBackground, tv, true);
+                row.setBackgroundResource(tv.resourceId);
+            }
+
+            // Favicon letter
+            android.widget.TextView fav = new android.widget.TextView(this);
+            fav.setLayoutParams(new android.widget.LinearLayout.LayoutParams(dp48, dp48));
+            fav.setGravity(android.view.Gravity.CENTER);
+            fav.setBackgroundColor(i == index ? 0xFF1A73E8 : 0xFF3A3A3A);
+            fav.setTextColor(0xFFFFFFFF);
+            fav.setTextSize(18);
+            fav.setText(title.isEmpty() ? "?" : String.valueOf(title.charAt(0)).toUpperCase());
+            row.addView(fav);
+
+            // Title + URL
+            android.widget.LinearLayout info = new android.widget.LinearLayout(this);
+            info.setOrientation(android.widget.LinearLayout.VERTICAL);
+            android.widget.LinearLayout.LayoutParams ilp =
+                new android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+            ilp.setMarginStart(dp16);
+            info.setLayoutParams(ilp);
+
+            android.widget.TextView titleTv = new android.widget.TextView(this);
+            titleTv.setText(title);
+            titleTv.setTextColor(0xFFEEEEEE);
+            titleTv.setTextSize(14);
+            titleTv.setMaxLines(1);
+            titleTv.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            info.addView(titleTv);
+
+            if (url != null && !url.startsWith("file:")) {
+                android.widget.TextView urlTv = new android.widget.TextView(this);
+                try { urlTv.setText(new java.net.URL(url).getHost()); }
+                catch (Exception e) { urlTv.setText(url.length() > 40 ? url.substring(0,40)+"..." : url); }
+                urlTv.setTextColor(0xFF888888);
+                urlTv.setTextSize(11);
+                urlTv.setMaxLines(1);
+                urlTv.setEllipsize(android.text.TextUtils.TruncateAt.END);
+                info.addView(urlTv);
+            }
+            row.addView(info);
+
+            // Close button
+            android.widget.TextView close = new android.widget.TextView(this);
+            close.setText("\u2715");
+            close.setTextColor(0xFF888888);
+            close.setTextSize(18);
+            close.setPadding(dp16, 0, dp8, 0);
             close.setOnClickListener(v -> closeTab(tabIndex));
-            row.addView(label);
             row.addView(close);
+
+            row.setOnClickListener(v -> { hideTabs(); show(tabIndex); });
+
             tabList.addView(row);
+
+            // Divider
+            android.view.View div = new android.view.View(this);
+            div.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 1));
+            div.setBackgroundColor(0xFF3A3A3A);
+            tabList.addView(div);
         }
-        tabsPanel.setVisibility(View.VISIBLE);
+        tabsPanel.setVisibility(android.view.View.VISIBLE);
         hideMenuSheet();
+        // Wire bottom buttons in tabs panel
+        tabsPanel.findViewById(R.id.btn_new_tab).setOnClickListener(v2 -> { hideTabs(); newTab(HOME); });
+        android.view.View privBtn = tabsPanel.findViewById(R.id.btn_private_tab);
+        if (privBtn != null) privBtn.setOnClickListener(v2 -> {
+            hideTabs();
+            Toast.makeText(this, "Private browsing opened", Toast.LENGTH_SHORT).show();
+            newTabPrivate();
+        });
     }
 
     private void hideTabs() {

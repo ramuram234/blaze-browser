@@ -74,7 +74,7 @@ public class BrowsingSettingsActivity extends AppCompatActivity {
     private static final String[] P_MODE = {"Off", "Normal (5 min)", "Full (15 min)", "Custom"};
     private static final String[] P_DIALOG = {
         "Off — 5 seconds  (strict data saver)",
-        "Normal — 5 minutes  ★ recommended",
+        "Normal — 5 minutes  [recommended]",
         "Full — 15 minutes  (download while watching)",
         "Custom — pick your own limit"
     };
