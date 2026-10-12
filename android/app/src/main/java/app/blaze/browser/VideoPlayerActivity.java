@@ -62,6 +62,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private float startBright = 0.8f;
     private boolean moved;
     private boolean locked;
+    private boolean seeking;
     private boolean bgAudio;
     private int speedIndex = 2;
     private static final float[] SPEEDS = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f};
@@ -173,6 +174,39 @@ public class VideoPlayerActivity extends AppCompatActivity {
         });
 
         close.setOnClickListener(v -> finish());
+        View playBtn = findViewById(R.id.btn_play_pause);
+        if (playBtn != null) playBtn.setOnClickListener(v -> {
+            if (player == null) return;
+            if (player.isPlaying()) player.pause();
+            else player.play();
+            ((TextView) v).setText(player.isPlaying() ? "❚❚" : "▶");
+        });
+        if (seekBar != null) {
+            seekBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(android.widget.SeekBar bar, int progress, boolean fromUser) {
+                    if (!fromUser || player == null) return;
+                    long dur = player.getDuration();
+                    if (dur > 0) player.seekTo(dur * progress / 1000);
+                }
+
+                @Override
+                public void onStartTrackingTouch(android.widget.SeekBar bar) {
+                    seeking = true;
+                }
+
+                @Override
+                public void onStopTrackingTouch(android.widget.SeekBar bar) {
+                    seeking = false;
+                }
+            });
+        }
+        View menuBtn = findViewById(R.id.player_menu_btn);
+        View panel = findViewById(R.id.settings_panel);
+        if (menuBtn != null && panel != null) {
+            menuBtn.setOnClickListener(v -> panel.setVisibility(
+                    panel.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
+        }
         android.view.View dlBtn = findViewById(R.id.btn_download_overlay);
         if (dlBtn != null) dlBtn.setOnClickListener(v -> downloadCurrentVideo());
         layer.setOnTouchListener((v, event) -> onGesture(v, event));
@@ -189,11 +223,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
             long pos = player.getCurrentPosition();
             long buf = player.getBufferedPosition();
             if (dur > 0) {
-                if (seekBar != null) seekBar.setProgress((int) (pos * 1000 / dur));
+                if (seekBar != null && !seeking) seekBar.setProgress((int) (pos * 1000 / dur));
                 
                 timeLabel.setText(format(pos) + " / " + format(dur) + "   buffered " + (buf * 100 / dur) + "%");
             } else {
-                timeLabel.setText(player.getPlaybackState() == Player.STATE_BUFFERING ? "BufferingΓÇª" : format(pos));
+                timeLabel.setText(player.getPlaybackState() == Player.STATE_BUFFERING ? "Buffering..." : format(pos));
             }
             handler.postDelayed(this, 250);
         }

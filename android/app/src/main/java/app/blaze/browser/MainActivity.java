@@ -129,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
             if (current().canGoForward()) current().goForward();
         });
 
-        tabButton = null;
         View tabsWrapper = findViewById(R.id.btn_tabs_wrapper);
         if (tabsWrapper != null) tabsWrapper.setOnClickListener(v -> {
             if (tabsPanel.getVisibility() == View.VISIBLE) hideTabs();
@@ -404,7 +403,7 @@ public class MainActivity extends AppCompatActivity {
         WebView web = current();
         String url = web.getUrl();
         address.setText(url == null || url.startsWith("file:") ? "" : url);
-        tabButton.setText(String.valueOf(tabs.size()));
+        if (tabButton != null) tabButton.setText(String.valueOf(tabs.size()));
         updatePlayChip();
     }
 

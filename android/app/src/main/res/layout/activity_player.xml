@@ -10,14 +10,17 @@
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:surface_type="texture_view"
         app:show_buffering="when_playing"
         app:use_controller="false" />
 
-    <!-- Gesture layer (transparent, on top of video) -->
+    <!-- Gesture layer stays between the top and bottom bars so those buttons stay tappable -->
     <View
         android:id="@+id/gesture_layer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="56dp"
+        android:layout_marginBottom="120dp" />
 
     <!-- HUD overlay (seek/volume/brightness text) -->
     <TextView
