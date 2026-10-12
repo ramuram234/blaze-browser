@@ -45,6 +45,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     public static final String EXTRA_REFERER = "referer";
     public static final String EXTRA_UA = "ua";
     public static final String EXTRA_WIDTH = "width";
+    public static final String EXTRA_TITLE  = "title";
     public static final String EXTRA_HEIGHT = "height";
 
     private ExoPlayer player;

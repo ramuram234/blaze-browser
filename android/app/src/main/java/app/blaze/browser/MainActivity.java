@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progress;
     private TextView playChip;
     private TextView tabButton;
-    private LinearLayout tabsPanel;
+    private FrameLayout tabsPanel;
     private LinearLayout tabList;
     private WebView warmer;
     private View browserUi;
@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         AdBlock.enabled = BrowserPrefs.adsEnabled(this);
+        BlazeDownloadManager.get().init(this);
         AdBlock.powerful = BrowserPrefs.powerfulAds(this);
         sniffJs = readAsset("www/sniff.js");
 
@@ -98,7 +99,8 @@ public class MainActivity extends AppCompatActivity {
         tabsPanel = findViewById(R.id.tabs_panel);
         tabList = findViewById(R.id.tab_list);
         browserUi = findViewById(R.id.browser_ui);
-        fullscreenHolder = findViewById(R.id.fullscreen_holder);
+        fullscreenHolder = (FrameLayout) findViewById(R.id.fullscreen_holder);
+        menuSheetScrim    = (FrameLayout) findViewById(R.id.menu_sheet_scrim);
         fsVideo = findViewById(R.id.fs_video);
         fsGestures = findViewById(R.id.fs_gestures);
         fsChrome = findViewById(R.id.fs_chrome);
