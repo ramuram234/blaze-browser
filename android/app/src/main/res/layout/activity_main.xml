@@ -234,18 +234,9 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Video sniff bar (R4 - UC Browser style video detection popup) -->
+    <!-- Video sniff bar -->
     <include
-        android:id="@+id/video_sniff_bar_root_wrapper"
-        layout="@layout/video_sniff_bar"
-        android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="56dp" />
-
-    <!-- Video sniff bar (R4 - UC Browser style video detection popup) -->
-    <include
-        android:id="@+id/video_sniff_bar_root_wrapper"
+        android:id="@+id/video_sniff_bar_root"
         layout="@layout/video_sniff_bar"
         android:layout_width="match_parent"
         android:layout_height="72dp"
