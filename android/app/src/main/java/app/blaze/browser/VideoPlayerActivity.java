@@ -421,24 +421,22 @@ public class VideoPlayerActivity extends AppCompatActivity {
             case MotionEvent.ACTION_MOVE: {
                 float dx = event.getX() - gestureDownX;
                 float dy = event.getY() - gestureDownY;
-
-                if ("pending".equals(gestureMode)) {
-                    if (Math.hypot(dx, dy) < TAP_THRESHOLD_PX) return true;
-                    gestureMoved = true;
-                    if (Math.abs(dx) > Math.abs(dy) * 1.2f) gestureMode = "seek";
-                    else gestureMode = gestureDownX < 540f ? "bright" : "volume";
-                    if (hint != null) hint.setVisibility(View.GONE);
-                    // Show controls when gesture starts so user can see indicators
-                    if (!controlsVisible) showControls();
-                }
-
-                // Get actual view dimensions for accurate gesture mapping
                 float viewW = 1080f, viewH = 1920f;
                 View gl = findViewById(R.id.gesture_layer);
                 if (gl != null && gl.getWidth() > 0) {
                     viewW = gl.getWidth();
                     viewH = gl.getHeight();
                 }
+
+                if ("pending".equals(gestureMode)) {
+                    if (Math.hypot(dx, dy) < TAP_THRESHOLD_PX) return true;
+                    gestureMoved = true;
+                    if (Math.abs(dx) > Math.abs(dy) * 1.2f) gestureMode = "seek";
+                    else gestureMode = gestureDownX < viewW / 2f ? "bright" : "volume";
+                    if (hint != null) hint.setVisibility(View.GONE);
+                    if (!controlsVisible) showControls();
+                }
+
                 float fdx = event.getX() - gestureDownX;
                 float fdy = event.getY() - gestureDownY;
 
