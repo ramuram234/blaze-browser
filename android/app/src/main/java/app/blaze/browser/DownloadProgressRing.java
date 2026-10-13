@@ -41,7 +41,11 @@ public class DownloadProgressRing extends View {
 
         arcPaint.setStyle(Paint.Style.STROKE);
         arcPaint.setStrokeWidth(strokeW);
-        arcPaint.setColor(0xFF1A73E8);
+        // UC Browser brand orange (#FF9C38) for download progress
+        int orangeColor;
+        try { orangeColor = ctx.getResources().getColor(R.color.uc_orange, ctx.getTheme()); }
+        catch (Exception e) { orangeColor = 0xFFFF9C38; }
+        arcPaint.setColor(orangeColor);
         arcPaint.setStrokeCap(Paint.Cap.ROUND);
 
         textPaint.setStyle(Paint.Style.FILL);

@@ -111,6 +111,27 @@ public class VideoPlayerActivity extends AppCompatActivity {
     // ── Network speed monitor ─────────────────────────────────────────────────
     private NetworkSpeedMonitor speedMonitor;
 
+    // UC Browser VolumeBrightnessHintView pattern
+    private android.widget.LinearLayout volumeBrightnessHint;
+    private android.widget.ImageView hintIcon;
+    private android.widget.ProgressBar hintProgress;
+    private final Runnable hideHintRunnable = () -> {
+        if (volumeBrightnessHint != null) volumeBrightnessHint.setVisibility(android.view.View.GONE);
+    };
+
+    // UC Browser RotationBtn pattern - cycles PORTRAIT -> LANDSCAPE -> SENSOR
+    private static final int[] ORIENTATIONS = {
+        android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
+        android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+        android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR
+    };
+    private static final int[] ROTATE_ICONS = {
+        R.drawable.ic_rotate_portrait,
+        R.drawable.ic_rotate_landscape,
+        R.drawable.ic_rotate_auto
+    };
+    private int rotateIndex = 2; // Start at SENSOR (auto)
+
     // Download progress ring (R11)
     private DownloadProgressRing downloadRing;
     private String currentVideoUrl = null;
@@ -169,6 +190,40 @@ public class VideoPlayerActivity extends AppCompatActivity {
         speedOverlay   = (TextView) findViewById(R.id.speed_overlay);
 
         downloadRing = (DownloadProgressRing) findViewById(R.id.download_progress_ring);
+
+        // UC Browser VolumeBrightnessHintView
+        volumeBrightnessHint = (android.widget.LinearLayout) findViewById(R.id.volume_brightness_hint);
+        hintIcon             = (android.widget.ImageView) (volumeBrightnessHint != null ? volumeBrightnessHint.findViewById(R.id.hint_icon) : null);
+        hintProgress         = (android.widget.ProgressBar) (volumeBrightnessHint != null ? volumeBrightnessHint.findViewById(R.id.hint_progress) : null);
+
+        // UC Browser RotationBtn - cycle rotation
+        android.widget.ImageButton btnRotate = (android.widget.ImageButton) findViewById(R.id.btn_rotate);
+        if (btnRotate != null) {
+            btnRotate.setImageResource(ROTATE_ICONS[rotateIndex]);
+            btnRotate.setOnClickListener(v -> {
+                rotateIndex = (rotateIndex + 1) % 3;
+                setRequestedOrientation(ORIENTATIONS[rotateIndex]);
+                btnRotate.setImageResource(ROTATE_ICONS[rotateIndex]);
+            });
+        }
+
+        // UC Browser WatchLaterButton
+        android.widget.ImageButton btnWatchLater = (android.widget.ImageButton) findViewById(R.id.btn_watch_later);
+        if (btnWatchLater != null) btnWatchLater.setOnClickListener(v -> {
+            String pageUrl = getIntent().getStringExtra("page_url");
+            if (pageUrl == null) {
+                java.util.ArrayList<String> vurls = getIntent().getStringArrayListExtra(EXTRA_URLS);
+                pageUrl = (vurls != null && !vurls.isEmpty()) ? vurls.get(0) : null;
+            }
+            if (pageUrl == null) return;
+            String ttl = getIntent().getStringExtra(EXTRA_TITLE);
+            if (ttl == null) ttl = "Saved video";
+            BrowserPrefs.toggleBookmark(this, ttl, pageUrl);
+            boolean isBookmarked = BrowserPrefs.isBookmarked(this, pageUrl);
+            Toast.makeText(this, isBookmarked ? "Saved to bookmarks" : "Removed from bookmarks",
+                    Toast.LENGTH_SHORT).show();
+        });
+
         PlayerView playerView = (PlayerView) findViewById(R.id.player_view);
         View gestureLayer     = findViewById(R.id.gesture_layer);
         ImageButton closeBtn  = (ImageButton) findViewById(R.id.close_player);
@@ -298,7 +353,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     timeLabel.setText(fmt(dur * progress / 1000));
             }
             @Override public void onStartTrackingTouch(SeekBar sb) {
-                seeking = true;
+                seeking = true; // UC Browser PlayerSeekBar: lock during touch
                 handler.removeCallbacks(autoHideRunnable);
             }
             @Override public void onStopTrackingTouch(SeekBar sb) {
@@ -370,6 +425,20 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private void resetAutoHide() {
         handler.removeCallbacks(autoHideRunnable);
         handler.postDelayed(autoHideRunnable, CONTROLS_TIMEOUT_MS);
+    }
+
+    // UC Browser VolumeBrightnessHintView: show volume/brightness with icon + progress bar
+    private void showHint(boolean isVolume, int value0to100) {
+        if (volumeBrightnessHint == null) return;
+        if (hintIcon != null) {
+            hintIcon.setImageResource(isVolume
+                ? android.R.drawable.ic_lock_silent_mode_off
+                : android.R.drawable.ic_menu_compass);
+        }
+        if (hintProgress != null) hintProgress.setProgress(value0to100);
+        volumeBrightnessHint.setVisibility(android.view.View.VISIBLE);
+        handler.removeCallbacks(hideHintRunnable);
+        handler.postDelayed(hideHintRunnable, 1000);
     }
 
     private void showHud(String text) {
@@ -455,13 +524,15 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     int vol = (int) Math.max(0, Math.min(100,
                             Math.round(gestureVolStart - (fdy / viewH) * 100f)));
                     setVolume(vol);
-                    showHud("Volume " + vol + "%  \uD83D\uDD0A");
+                    showHint(true, vol);
+                    showHud("Volume " + vol + "%");
 
                 } else if ("bright".equals(gestureMode)) {
                     int pct = (int) Math.max(8, Math.min(100,
                             Math.round(gestureBrightStart * 100 - (fdy / viewH) * 100f)));
                     setBrightness(pct / 100f);
-                    showHud("Brightness " + pct + "%  \u2600");
+                    showHint(false, pct);
+                    showHud("Brightness " + pct + "%");
                 }
                 return true;
             }

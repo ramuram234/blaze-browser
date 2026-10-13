@@ -154,6 +154,62 @@
                 <TextView android:id="@+id/label_search_engine" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Google" android:textSize="14sp" android:textColor="@color/primary"/>
             </LinearLayout>
 
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <!-- UC Browser KEY_ROTATESCREEN: Auto-rotate video -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Auto-rotate in video" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_auto_rotate" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <!-- UC Browser OpenHWAC: Hardware Acceleration -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Hardware Acceleration" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_hw_accel" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <!-- UC Browser UCCustomFontSizeLayout: Font Size -->
+            <LinearLayout android:id="@+id/row_font_size" android:layout_width="match_parent"
+                android:layout_height="72dp" android:orientation="vertical"
+                android:paddingStart="20dp" android:paddingEnd="20dp" android:paddingTop="8dp" android:paddingBottom="8dp"
+               >
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Font Size" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:id="@+id/label_font_size" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="100%"
+                        android:textSize="14sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <SeekBar android:id="@+id/seek_font_size" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                    android:max="125" android:progress="25"
+                    android:progressTint="@color/primary" android:thumbTint="@color/primary"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <!-- UC Browser EnableSwipeForwardOrBackward: Swipe nav -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="Swipe Forward / Back" android:textSize="15sp" android:textColor="@color/ink"/>
+                <Switch android:id="@+id/switch_swipe_nav" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginStart="20dp"/>
+            <!-- UC Browser KEY_SMART_NOPIC: Block images data saver -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="64dp"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Block Images" android:textSize="15sp" android:textColor="@color/ink"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Saves data, pages load faster" android:textSize="12sp" android:textColor="@color/muted"/>
+                </LinearLayout>
+                <Switch android:id="@+id/switch_block_images" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

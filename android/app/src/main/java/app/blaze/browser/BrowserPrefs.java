@@ -242,4 +242,55 @@ public final class BrowserPrefs {
     public static void setDataSaver(Context context, boolean on) {
         prefs(context).edit().putBoolean("data_saver", on).apply();
     }
+
+    // ?? UC Browser Feature Prefs ??????????????????????????????????????????
+
+    /** Activity slide animations (UC AnimationIsOpen). Default: true */
+    public static boolean animationsEnabled(Context context) {
+        return prefs(context).getBoolean("animations", true);
+    }
+    public static void setAnimationsEnabled(Context context, boolean on) {
+        prefs(context).edit().putBoolean("animations", on).apply();
+    }
+
+    /** Auto-rotate in video player (UC KEY_ROTATESCREEN). Default: false */
+    public static boolean autoRotateVideo(Context context) {
+        return prefs(context).getBoolean("auto_rotate", false);
+    }
+    public static void setAutoRotateVideo(Context context, boolean on) {
+        prefs(context).edit().putBoolean("auto_rotate", on).apply();
+    }
+
+    /** Hardware acceleration (UC OpenHWAC). Default: true */
+    public static boolean hardwareAccel(Context context) {
+        return prefs(context).getBoolean("hw_accel", true);
+    }
+    public static void setHardwareAccel(Context context, boolean on) {
+        prefs(context).edit().putBoolean("hw_accel", on).apply();
+    }
+
+    /** Text zoom percentage (UC UCCustomFontSizeLayout). Range 75-200. Default: 100 */
+    public static int fontSizePercent(Context context) {
+        return prefs(context).getInt("font_size", 100);
+    }
+    public static void setFontSizePercent(Context context, int percent) {
+        int clamped = Math.max(75, Math.min(200, percent));
+        prefs(context).edit().putInt("font_size", clamped).apply();
+    }
+
+    /** Swipe forward/back navigation (UC EnableSwipeForwardOrBackward). Default: true */
+    public static boolean swipeNavEnabled(Context context) {
+        return prefs(context).getBoolean("swipe_nav", true);
+    }
+    public static void setSwipeNavEnabled(Context context, boolean on) {
+        prefs(context).edit().putBoolean("swipe_nav", on).apply();
+    }
+
+    /** Block images to save data (UC KEY_SMART_NOPIC). Default: false */
+    public static boolean blockImages(Context context) {
+        return prefs(context).getBoolean("block_images", false);
+    }
+    public static void setBlockImages(Context context, boolean on) {
+        prefs(context).edit().putBoolean("block_images", on).apply();
+    }
 }

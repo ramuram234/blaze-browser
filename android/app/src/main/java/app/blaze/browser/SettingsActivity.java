@@ -26,9 +26,19 @@ public class SettingsActivity extends AppCompatActivity {
         addRow(list, "Notification Settings", () -> {});
         addRow(list, "Search Settings",     () -> {});
         addRow(list, "Themes",              () -> {});
+        addRow(list, "Clear Cookies", () -> {
+            android.webkit.CookieManager.getInstance().removeAllCookies(null);
+            android.webkit.CookieManager.getInstance().flush();
+            Toast.makeText(this, "Cookies cleared", Toast.LENGTH_SHORT).show();
+        });
         addRow(list, "Clear Records", () -> {
             BrowserPrefs.clearAll(this);
             Toast.makeText(this, "History and bookmarks cleared", Toast.LENGTH_SHORT).show();
+        });
+        addRow(list, "Slide Animations: " + (BrowserPrefs.animationsEnabled(this) ? "ON" : "OFF"), () -> {
+            boolean on = !BrowserPrefs.animationsEnabled(this);
+            BrowserPrefs.setAnimationsEnabled(this, on);
+            Toast.makeText(this, "Animations: " + (on ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
         addRow(list, "About Blaze", () ->
             new AlertDialog.Builder(this)

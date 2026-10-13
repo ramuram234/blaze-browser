@@ -1,6 +1,11 @@
 package app.blaze.browser;
 
 import android.animation.ObjectAnimator;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -92,6 +97,14 @@ public class MainActivity extends AppCompatActivity {
     private int consecutiveNsoZeros = 0;
     private int consecutiveBadgeZeros = 0;
     private final android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    // v2.1 UC Browser fields (faviconView, securityIndicator, etc.)
+    private android.widget.ImageView faviconView;
+    private android.widget.ImageView securityIndicator;
+    private android.view.View videoOverlayBar;
+    private boolean audioMuted = false;
+    private int lastScrollY = 0;
+    private boolean barHidden = false;
+    private android.animation.ObjectAnimator barAnimator;
     private float downX;
     private float downY;
     private boolean gestureMoved;
@@ -169,7 +182,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // v2.0: bind new views
+        // v2.1: UC Browser full replication bindings
+        faviconView       = (ImageView) findViewById(R.id.favicon_view);
+        securityIndicator = (ImageView) findViewById(R.id.security_indicator);
+        videoOverlayBar   = findViewById(R.id.video_overlay_bar);
+        android.view.View btnOverlayPip   = findViewById(R.id.btn_overlay_pip);
+        android.view.View btnOverlayDl    = findViewById(R.id.btn_overlay_dl);
+        android.view.View btnOverlayAudio = findViewById(R.id.btn_overlay_audio);
+
+        // UC Browser in-page video controls (video_site_controls_layout style)
+        if (btnOverlayPip != null) btnOverlayPip.setOnClickListener(v2 -> {
+            if (android.os.Build.VERSION.SDK_INT >= 26 &&
+                    getPackageManager().hasSystemFeature(android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+                try { enterPictureInPictureMode(
+                    new android.app.PictureInPictureParams.Builder()
+                        .setAspectRatio(new android.util.Rational(16, 9)).build());
+                } catch (Exception e2) {
+                    android.widget.Toast.makeText(this, "PiP not available right now", android.widget.Toast.LENGTH_SHORT).show(); }
+            } else {
+                android.widget.Toast.makeText(this, "PiP not supported on this device", android.widget.Toast.LENGTH_SHORT).show(); }
+        });
+        if (btnOverlayDl != null) btnOverlayDl.setOnClickListener(v2 -> playDetected());
+        if (btnOverlayAudio != null) btnOverlayAudio.setOnClickListener(v2 -> {
+            audioMuted = !audioMuted;
+            current().evaluateJavascript(
+                "document.querySelectorAll('video').forEach(function(v){v.muted=" + audioMuted + ";});", null);
+            if (btnOverlayAudio instanceof android.widget.ImageButton)
+                ((android.widget.ImageButton)btnOverlayAudio).setImageResource(
+                    audioMuted ? android.R.drawable.ic_lock_silent_mode : android.R.drawable.ic_lock_silent_mode_off);
+        });
+
+                // v2.0: bind new views
         sniffBar     = findViewById(R.id.video_sniff_bar_root);
         sniffBarTitle = (android.widget.TextView) (sniffBar != null ? sniffBar.findViewById(R.id.sniff_bar_title) : null);
         sniffBarDomain = (android.widget.TextView) (sniffBar != null ? sniffBar.findViewById(R.id.sniff_bar_domain) : null);
@@ -361,6 +404,13 @@ public class MainActivity extends AppCompatActivity {
                     if (view == current()) {
                         updatePlayChip();
                         dismissVideoSniffBar();
+                        // Reset address bar position on new page
+                        android.view.View ab = findViewById(R.id.address_bar);
+                        if (ab != null) ab.setTranslationY(0);
+                        barHidden = false; lastScrollY = 0;
+                        if (videoOverlayBar != null) videoOverlayBar.setVisibility(View.GONE);
+                        audioMuted = false;
+                        if (securityIndicator != null) securityIndicator.setVisibility(View.GONE);
                     }
                 }
             }
@@ -369,9 +419,38 @@ public class MainActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 if (view == current()) {
                     address.setText(url != null && url.startsWith("file:") ? "" : url);
+                    // UC Browser favicon + security indicator
+                    if (url != null && !url.startsWith("file:")) {
+                        try {
+                            android.net.Uri parsedUri = android.net.Uri.parse(url);
+                            String host = parsedUri.getHost();
+                            String scheme = parsedUri.getScheme();
+                            loadSiteFavicon(host);
+                            if (securityIndicator != null) {
+                                securityIndicator.setVisibility(View.VISIBLE);
+                                if ("https".equals(scheme)) {
+                                    securityIndicator.setImageResource(R.drawable.ic_lock_green);
+                                    securityIndicator.setContentDescription("Secure connection");
+                                } else {
+                                    securityIndicator.setImageResource(R.drawable.ic_warning_orange);
+                                    securityIndicator.setContentDescription("Insecure connection");
+                                }
+                            }
+                        } catch (Exception ignored) {}
+                    } else {
+                        if (securityIndicator != null) securityIndicator.setVisibility(View.GONE);
+                    }
                 }
                 if (sniffJs != null && !sniffJs.isEmpty() && url != null && !url.startsWith("file:")) {
                     view.evaluateJavascript(sniffJs, null);
+                }
+                // UC Browser KEY_SCROLL_OPT: scroll detection for address bar hide
+                if (url != null && !url.startsWith("file:")) {
+                    view.evaluateJavascript(
+                        "(function(){var last=0;window.addEventListener('scroll',function(){" +
+                        "var y=Math.round(window.scrollY||document.documentElement.scrollTop||0);" +
+                        "if(Math.abs(y-last)>=50&&window.BlazeBridge){window.BlazeBridge.onScroll(y);last=y;}}" +
+                        ",{passive:true});})()", null);
                 }
                 if (BrowserPrefs.blockFonts(MainActivity.this) && url != null && !url.startsWith("file:")) {
                     view.evaluateJavascript("(function(){var s=document.getElementById('blaze-nf');if(s)return;s=document.createElement('style');s.id='blaze-nf';s.textContent='*{font-family:sans-serif!important;}';document.head.appendChild(s);})()", null);
@@ -437,6 +516,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
         applyDataSaverSettings(web);
+        applyWebSettings(web);
         return web;
     }
 
@@ -646,10 +726,12 @@ public class MainActivity extends AppCompatActivity {
         boolean hasFile = !tab.videos.isEmpty();
         if (!hasFile && !tab.pageVideo) {
             playChip.setVisibility(View.GONE);
+        if (videoOverlayBar != null) videoOverlayBar.setVisibility(View.GONE);
             return;
         }
         playChip.setText(hasFile ? "Watch video" : "Fullscreen video");
         playChip.setVisibility(View.VISIBLE);
+        if (videoOverlayBar != null) videoOverlayBar.setVisibility(View.VISIBLE);
     }
 
     private void playDetected() {
@@ -922,6 +1004,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        applyNightChrome(BrowserPrefs.nightMode(this));
         netMon.start((formatted, bps) -> {
             if (netSpeedOverlay == null) return;
             if (bps < 0) return;
@@ -1313,6 +1396,80 @@ public class MainActivity extends AppCompatActivity {
         if (!s.contains(" ") && s.contains(".")) return "https://" + s;
         try { return "https://www.google.com/search?q=" + java.net.URLEncoder.encode(s, "UTF-8"); }
         catch (Exception e) { return "https://www.google.com/search?q=" + s; }
+    }
+
+    // ?? UC Browser helper methods (v2.1) ?????????????????????????????????????
+
+    /** UC Browser AnimationIsOpen: slide transitions between activities */
+    private void startWithAnim(android.content.Intent intent) {
+        startActivity(intent);
+        if (BrowserPrefs.animationsEnabled(this))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.zoom_out);
+        else
+            overridePendingTransition(0, 0);
+    }
+
+    private void finishWithAnim() {
+        finish();
+        if (BrowserPrefs.animationsEnabled(this))
+            overridePendingTransition(R.anim.zoom_in, R.anim.slide_out_right);
+        else
+            overridePendingTransition(0, 0);
+    }
+
+    /** UC Browser skin_night_*: native dark mode for browser chrome */
+    private void applyNightChrome(boolean night) {
+        int barBg  = night ? 0xFF14181E : 0xFFFFFFFF;
+        int navBg  = night ? 0xFF14181E : 0xFFF7F7F8;
+        int elemBg = night ? 0xFF1B1B1B : 0xFFFFFFFF;
+        int tabBg  = night ? 0xFF14181E : 0xFF222327;
+        try {
+            getWindow().setStatusBarColor(barBg);
+            getWindow().setNavigationBarColor(navBg);
+        } catch (Exception ignored) {}
+        android.view.View addressBar = findViewById(R.id.address_bar);
+        if (addressBar != null) addressBar.setBackgroundColor(elemBg);
+        if (tabsPanel != null) tabsPanel.setBackgroundColor(tabBg);
+        // Bottom nav - last child of browser_ui
+        if (browserUi instanceof android.widget.LinearLayout) {
+            android.widget.LinearLayout ll = (android.widget.LinearLayout) browserUi;
+            if (ll.getChildCount() > 0) ll.getChildAt(ll.getChildCount()-1).setBackgroundColor(navBg);
+        }
+        int flags = night ? 0 : (android.os.Build.VERSION.SDK_INT >= 23 ?
+            android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR : 0);
+        getWindow().getDecorView().setSystemUiVisibility(flags);
+    }
+
+    /** UC Browser favicon loading (Google favicon service) */
+    private void loadSiteFavicon(String host) {
+        if (host == null || host.isEmpty() || faviconView == null) return;
+        final String url = "https://www.google.com/s2/favicons?domain=" + host + "&sz=32";
+        new Thread(() -> {
+            try {
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+                conn.setConnectTimeout(3000); conn.setReadTimeout(3000);
+                conn.connect();
+                if (conn.getResponseCode() == 200) {
+                    android.graphics.Bitmap bm = android.graphics.BitmapFactory.decodeStream(conn.getInputStream());
+                    if (bm != null) runOnUiThread(() -> faviconView.setImageBitmap(bm));
+                }
+                conn.disconnect();
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
+    /** UC Browser OpenHWAC + UCCustomFontSizeLayout + KEY_SMART_NOPIC */
+    private void applyWebSettings(android.webkit.WebView wv) {
+        if (wv == null) return;
+        android.webkit.WebSettings s = wv.getSettings();
+        s.setTextZoom(BrowserPrefs.fontSizePercent(this));
+        boolean blockImg = BrowserPrefs.blockImages(this) || BrowserPrefs.dataSaver(this);
+        s.setBlockNetworkImage(blockImg);
+        s.setLoadsImagesAutomatically(!blockImg);
+        if (!BrowserPrefs.hardwareAccel(this))
+            wv.setLayerType(android.view.View.LAYER_TYPE_SOFTWARE, null);
+        else
+            wv.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
     }
 
 }

@@ -22,15 +22,23 @@
             android:paddingEnd="8dp"
             android:elevation="2dp">
 
-            <TextView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:background="@drawable/search_bar_bg"
-                android:gravity="center"
-                android:text="G"
-                android:textColor="#1A73E8"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/favicon_view"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginEnd="2dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="Site favicon"
+                android:src="@android:drawable/sym_def_app_icon" />
+
+            <ImageView
+                android:id="@+id/security_indicator"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="4dp"
+                android:scaleType="centerInside"
+                android:visibility="gone"
+                android:contentDescription="Connection security" />
 
             <EditText
                 android:id="@+id/address"
@@ -99,6 +107,50 @@
                 android:id="@+id/web_stack"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+
+            <!-- In-page video controls overlay (UC Browser video_site_controls_layout style) -->
+            <LinearLayout
+                android:id="@+id/video_overlay_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:layout_marginTop="64dp"
+                android:orientation="vertical"
+                android:padding="6dp"
+                android:elevation="4dp"
+                android:background="@drawable/overlay_bar_bg"
+                android:visibility="gone">
+
+                <ImageButton
+                    android:id="@+id/btn_overlay_pip"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Enter PiP"
+                    android:src="@android:drawable/ic_menu_slideshow"
+                    android:tint="#FFFFFFFF" />
+
+                <ImageButton
+                    android:id="@+id/btn_overlay_dl"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Download video"
+                    android:src="@android:drawable/stat_sys_download"
+                    android:tint="#FFFFFFFF" />
+
+                <ImageButton
+                    android:id="@+id/btn_overlay_audio"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Toggle audio"
+                    android:src="@android:drawable/ic_lock_silent_mode_off"
+                    android:tint="#FFFFFFFF" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/btn_play"

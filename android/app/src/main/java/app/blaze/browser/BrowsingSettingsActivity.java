@@ -3,6 +3,8 @@ package app.blaze.browser;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
+import android.widget.Toast;
 import android.widget.Switch;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +20,7 @@ public class BrowsingSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_browsing_settings);
         ((ImageButton) findViewById(R.id.btn_back)).setOnClickListener(v -> finish());
         wirePreloadRow(findViewById(R.id.label_preload_mode), findViewById(R.id.label_preload_desc));
+        wireUcSettings();
 
         Switch swNight   = findViewById(R.id.switch_night);
         Switch swDesktop = findViewById(R.id.switch_desktop);
@@ -68,6 +71,57 @@ public class BrowsingSettingsActivity extends AppCompatActivity {
                 })
                 .show()
         );
+    }
+
+    private void wireUcSettings() {
+        // UC Browser settings (BrowserSettingWindow.java patterns)
+        android.view.View swAutoRotateView = findViewById(R.id.switch_auto_rotate);
+        android.view.View swHwAccelView    = findViewById(R.id.switch_hw_accel);
+        android.view.View seekFontView     = findViewById(R.id.seek_font_size);
+        android.view.View swSwipeNavView   = findViewById(R.id.switch_swipe_nav);
+        android.view.View swBlockImgView   = findViewById(R.id.switch_block_images);
+        android.widget.TextView lblFont    = (android.widget.TextView) findViewById(R.id.label_font_size);
+
+        if (swAutoRotateView instanceof Switch) {
+            Switch sw = (Switch) swAutoRotateView;
+            sw.setChecked(BrowserPrefs.autoRotateVideo(this));
+            sw.setOnCheckedChangeListener((b, on) -> BrowserPrefs.setAutoRotateVideo(this, on));
+        }
+        if (swHwAccelView instanceof Switch) {
+            Switch sw = (Switch) swHwAccelView;
+            sw.setChecked(BrowserPrefs.hardwareAccel(this));
+            sw.setOnCheckedChangeListener((b, on) -> {
+                BrowserPrefs.setHardwareAccel(this, on);
+                Toast.makeText(this, "Restart app for hardware acceleration change", Toast.LENGTH_SHORT).show();
+            });
+        }
+        if (seekFontView instanceof SeekBar) {
+            SeekBar sb = (SeekBar) seekFontView;
+            int stored = BrowserPrefs.fontSizePercent(this);
+            sb.setProgress(stored - 75); // offset: 75-200 stored, 0-125 in seekbar
+            if (lblFont != null) lblFont.setText(stored + "%");
+            sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    int pct = progress + 75;
+                    if (lblFont != null) lblFont.setText(pct + "%");
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {
+                    BrowserPrefs.setFontSizePercent(BrowsingSettingsActivity.this, seekBar.getProgress() + 75);
+                    setResult(android.app.Activity.RESULT_OK);
+                }
+            });
+        }
+        if (swSwipeNavView instanceof Switch) {
+            Switch sw = (Switch) swSwipeNavView;
+            sw.setChecked(BrowserPrefs.swipeNavEnabled(this));
+            sw.setOnCheckedChangeListener((b, on) -> BrowserPrefs.setSwipeNavEnabled(this, on));
+        }
+        if (swBlockImgView instanceof Switch) {
+            Switch sw = (Switch) swBlockImgView;
+            sw.setChecked(BrowserPrefs.blockImages(this));
+            sw.setOnCheckedChangeListener((b, on) -> { BrowserPrefs.setBlockImages(this, on); setResult(android.app.Activity.RESULT_OK); });
+        }
     }
 
     private static final String[] P_DESC = {"5s - min data", "5 min - balanced", "15 min - max", "Custom"};
