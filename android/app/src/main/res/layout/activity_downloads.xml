@@ -5,42 +5,99 @@
     android:orientation="vertical"
     android:background="@color/bg">
 
-    <!-- Top bar -->
+    <!-- Toolbar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:gravity="center_vertical"
-        android:paddingStart="4dp"
         android:background="@color/surface"
-        android:elevation="2dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:elevation="4dp">
+
         <ImageButton
             android:id="@+id/btn_back"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_back"
-            android:contentDescription="Back"/>
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back" />
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Downloads"
-            android:textSize="18sp"
+            android:textSize="17sp"
+            android:textStyle="bold"
             android:textColor="@color/ink"
-            android:textStyle="bold"/>
-        <TextView
+            android:paddingStart="4dp" />
+
+        <Button
             android:id="@+id/btn_clear_all"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
             android:text="Clear done"
-            android:textColor="@color/primary"
-            android:textSize="13sp"/>
+            android:textSize="12sp"
+            style="@style/Widget.AppCompat.Button.Borderless" />
     </LinearLayout>
 
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider"/>
+    <!-- Tab headers -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@color/surface"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tab_downloading"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Downloading"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tab_finished"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Finished"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Tab indicator -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:orientation="horizontal">
+        <View
+            android:id="@+id/tab_indicator"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/primary" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <!-- Scroll content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/downloads_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
 
     <!-- Empty state -->
     <TextView
@@ -51,18 +108,7 @@
         android:gravity="center"
         android:text="No downloads yet"
         android:textColor="@color/muted"
-        android:textSize="15sp"
-        android:visibility="gone"/>
+        android:textSize="14sp"
+        android:visibility="gone" />
 
-    <!-- Download list -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-        <LinearLayout
-            android:id="@+id/downloads_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"/>
-    </ScrollView>
 </LinearLayout>

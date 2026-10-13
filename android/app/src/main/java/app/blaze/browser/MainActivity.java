@@ -1,6 +1,9 @@
 package app.blaze.browser;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.ClipData;
@@ -76,6 +79,19 @@ public class MainActivity extends AppCompatActivity {
     private WebChromeClient.CustomViewCallback customCallback;
     private String mobileUa = "";
     private String gestureMode = "none";
+
+    // v2.0 UC Browser replication views
+    private android.view.View sniffBar;
+    private android.widget.TextView sniffBarTitle;
+    private android.widget.TextView sniffBarDomain;
+    private android.view.View sniffBarPlay;
+    private android.view.View sniffBarDownload;
+    private android.widget.TextView dlSpeedBadge;
+    private android.widget.TextView netSpeedOverlay;
+    private NetworkSpeedMonitor netMon = new NetworkSpeedMonitor();
+    private int consecutiveNsoZeros = 0;
+    private int consecutiveBadgeZeros = 0;
+    private final android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private float downX;
     private float downY;
     private boolean gestureMoved;
@@ -152,6 +168,42 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Bookmarks updated", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // v2.0: bind new views
+        sniffBar     = findViewById(R.id.video_sniff_bar_root);
+        sniffBarTitle = (android.widget.TextView) (sniffBar != null ? sniffBar.findViewById(R.id.sniff_bar_title) : null);
+        sniffBarDomain = (android.widget.TextView) (sniffBar != null ? sniffBar.findViewById(R.id.sniff_bar_domain) : null);
+        if (sniffBar != null) {
+            sniffBarPlay = sniffBar.findViewById(R.id.sniff_bar_play);
+            sniffBarDownload = sniffBar.findViewById(R.id.sniff_bar_download);
+            if (sniffBarPlay != null) sniffBarPlay.setOnClickListener(v2 -> {
+                TabState t = state(current()); if (t.sniffedUrl != null) {
+                    android.content.Intent pi = new android.content.Intent(this, VideoPlayerActivity.class);
+                    pi.putStringArrayListExtra(VideoPlayerActivity.EXTRA_URLS, new ArrayList<>(java.util.Collections.singletonList(t.sniffedUrl)));
+                    pi.putExtra(VideoPlayerActivity.EXTRA_REFERER, current().getUrl());
+                    pi.putExtra(VideoPlayerActivity.EXTRA_UA, current().getSettings().getUserAgentString());
+                    startActivity(pi); } dismissVideoSniffBar(); });
+            if (sniffBarDownload != null) sniffBarDownload.setOnClickListener(v2 -> {
+                TabState t = state(current()); if (t.sniffedUrl != null)
+                    BlazeDownloadManager.get().enqueue(t.sniffedUrl, current().getUrl(), current().getSettings().getUserAgentString(), "video");
+                Toast.makeText(this, "Download started", Toast.LENGTH_SHORT).show();
+                dismissVideoSniffBar(); });
+            // Swipe-down to dismiss
+            final float[] sniffDownY = {0};
+            sniffBar.setOnTouchListener((v2, ev2) -> {
+                if (ev2.getAction() == android.view.MotionEvent.ACTION_DOWN) sniffDownY[0] = ev2.getY();
+                if (ev2.getAction() == android.view.MotionEvent.ACTION_MOVE)
+                    if (ev2.getY() - sniffDownY[0] > dpToPx(50)) dismissVideoSniffBar();
+                return false; });
+        }
+        dlSpeedBadge = (android.widget.TextView) findViewById(R.id.dl_speed_badge);
+        if (dlSpeedBadge != null) dlSpeedBadge.setOnClickListener(v2 -> startActivity(new android.content.Intent(this, DownloadsActivity.class)));
+        netSpeedOverlay = (android.widget.TextView) findViewById(R.id.net_speed_overlay);
+        if (netSpeedOverlay != null) { netSpeedOverlay.setClickable(false); netSpeedOverlay.setFocusable(false); }
+        // Init DataSaver
+        AdBlock.dataSaverMode = BrowserPrefs.dataSaver(this);
+        // Register download speed listener
+        BlazeDownloadManager.get().setSpeedListener(bps -> mainHandler.post(() -> updateDlSpeedBadge(bps)));
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -304,7 +356,12 @@ public class MainActivity extends AppCompatActivity {
                 if (requestIsMain(url)) {
                     state(view).videos.clear();
                     state(view).pageVideo = false;
-                    if (view == current()) updatePlayChip();
+                    state(view).sniffBarShown = false;
+                    state(view).sniffedUrl = null;
+                    if (view == current()) {
+                        updatePlayChip();
+                        dismissVideoSniffBar();
+                    }
                 }
             }
 
@@ -379,6 +436,7 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+        applyDataSaverSettings(web);
         return web;
     }
 
@@ -398,6 +456,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void show(int next) {
+        // Capture screenshot of departing tab before switching
+        if (index < tabs.size()) captureTabScreenshot(tabs.get(index));
+        dismissVideoSniffBar();
         index = next;
         for (int i = 0; i < tabs.size(); i++) {
             tabs.get(i).setVisibility(i == index ? View.VISIBLE : View.GONE);
@@ -419,7 +480,8 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < tabs.size(); i++) {
             final int tabIndex = i;
-            TabState state = state(tabs.get(i));
+            android.webkit.WebView tabWv = tabs.get(i);
+            TabState state = state(tabWv);
             String url   = tabs.get(i).getUrl();
             String title = (state.title == null || state.title.isEmpty()) ? "New Tab" : state.title;
             if (url == null || url.startsWith("file:")) title = "Home";
@@ -525,6 +587,7 @@ public class MainActivity extends AppCompatActivity {
         }
         WebView web = tabs.remove(tabIndex);
         stack.removeView(web);
+        TabState ts = state(web); if (ts.thumbnail != null) { ts.thumbnail.recycle(); ts.thumbnail = null; }
         web.destroy();
         if (index >= tabs.size()) index = tabs.size() - 1;
         show(index);
@@ -567,7 +630,15 @@ public class MainActivity extends AppCompatActivity {
         if (AdBlock.isAd(Uri.parse(url)) || !VideoSniffer.isPlayable(Uri.parse(url))) return;
         LinkedHashSet<String> videos = state(view).videos;
         if (videos.size() >= 8 || !videos.add(url)) return;
-        if (view == current()) updatePlayChip();
+        if (view == current()) {
+            updatePlayChip();
+            // Show VideoSniffBar for first detected video
+            TabState tab = state(view);
+            if (!tab.sniffBarShown && tab.sniffedUrl == null) {
+                tab.sniffedUrl = url;
+                showVideoSniffBar();
+            }
+        }
     }
 
     private void updatePlayChip() {
@@ -849,6 +920,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        netMon.start((formatted, bps) -> {
+            if (netSpeedOverlay == null) return;
+            if (bps < 0) return;
+            if (bps > 0) {
+                consecutiveNsoZeros = 0;
+                netSpeedOverlay.setVisibility(android.view.View.VISIBLE);
+                netSpeedOverlay.setText(formatted);
+            } else {
+                consecutiveNsoZeros++;
+                if (consecutiveNsoZeros >= 3) netSpeedOverlay.setVisibility(android.view.View.GONE);
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        netMon.stop();
+    }
+
+    @Override
     protected void onDestroy() {
         if (warmer != null) warmer.destroy();
         for (WebView web : tabs) web.destroy();
@@ -884,6 +978,40 @@ public class MainActivity extends AppCompatActivity {
         public void prefetch(String url) {
             runOnUiThread(() -> MainActivity.this.prefetch(url));
         }
+
+        @JavascriptInterface
+        public String getHistory() {
+            try {
+                java.util.List<String[]> rows = BrowserPrefs.history(MainActivity.this);
+                org.json.JSONArray arr = new org.json.JSONArray();
+                int limit = Math.min(8, rows.size());
+                for (int i = 0; i < limit; i++) {
+                    org.json.JSONObject obj = new org.json.JSONObject();
+                    obj.put("t", rows.get(i)[0]);
+                    obj.put("u", rows.get(i)[1]);
+                    arr.put(obj);
+                }
+                return arr.toString();
+            } catch (Exception e) { return "[]"; }
+        }
+
+        @JavascriptInterface
+        public boolean getDataSaverEnabled() { return BrowserPrefs.dataSaver(MainActivity.this); }
+
+        @JavascriptInterface
+        public void navigate(String url) { runOnUiThread(() -> openInput(url, false)); }
+
+        @JavascriptInterface
+        public String resolveInput(String input) { return resolveHomepageInput(input); }
+
+        @JavascriptInterface
+        public void setDataSaver(boolean on) {
+            runOnUiThread(() -> {
+                BrowserPrefs.setDataSaver(MainActivity.this, on);
+                AdBlock.dataSaverMode = on;
+                for (android.webkit.WebView w2 : tabs) applyDataSaverSettings(w2);
+            });
+        }
     }
 
     private static final class TabState {
@@ -893,6 +1021,10 @@ public class MainActivity extends AppCompatActivity {
         boolean pageVideo;
         int vw;
         int vh;
+        // v2.0 UC Browser replication fields
+        boolean sniffBarShown = false;    // R4: video sniff bar shown for current page
+        String  sniffedUrl    = null;     // R4: first detected video URL
+        android.graphics.Bitmap thumbnail = null; // R9: tab screenshot
     }
 
     private String buildSearchUrl(String query) {
@@ -998,6 +1130,15 @@ public class MainActivity extends AppCompatActivity {
         wireMenuBtn(R.id.menu_bookmarks, v -> { hideMenuSheet(); showPageList("Bookmarks", BrowserPrefs.bookmarks(this)); });
         wireMenuBtn(R.id.menu_history,   v -> { hideMenuSheet(); showPageList("History",   BrowserPrefs.history(this)); });
         wireMenuBtn(R.id.menu_downloads, v -> { hideMenuSheet(); startActivity(new android.content.Intent(this, DownloadsActivity.class)); });
+        wireMenuBtn(R.id.menu_data_saver, v -> {
+            boolean on = !BrowserPrefs.dataSaver(this);
+            BrowserPrefs.setDataSaver(this, on);
+            AdBlock.dataSaverMode = on;
+            for (android.webkit.WebView w2 : tabs) applyDataSaverSettings(w2);
+            android.view.View dsView = menuSheetScrim.findViewById(R.id.menu_data_saver);
+            if (dsView instanceof android.widget.TextView) ((android.widget.TextView)dsView).setText("Data Saver: " + (on ? "ON" : "OFF"));
+            hideMenuSheet();
+            Toast.makeText(this, "Data Saver " + (on ? "ON" : "OFF"), Toast.LENGTH_SHORT).show(); });
         wireMenuBtn(R.id.menu_night, v -> {
             boolean on = !BrowserPrefs.nightMode(this);
             BrowserPrefs.setNightMode(this, on);
@@ -1046,6 +1187,132 @@ public class MainActivity extends AppCompatActivity {
         new AlertDialog.Builder(this).setTitle(title)
             .setItems(labels, (d,i) -> current().loadUrl(rows.get(i)[1]))
             .setNegativeButton("Close", null).show();
+    }
+
+    // ?? v2.0 helper methods ????????????????????????????????????????????????
+
+    /** Truncate string to max characters. */
+    static String truncate(String s, int max) {
+        if (s == null || s.isEmpty()) return "";
+        return s.length() <= max ? s : s.substring(0, max);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
+    /** Show the VideoSniffBar for the current tab if not already shown. */
+    private void showVideoSniffBar() {
+        if (sniffBar == null) return;
+        TabState tab = state(current());
+        if (tab.sniffBarShown) return;
+        tab.sniffBarShown = true;
+        if (sniffBarTitle != null) sniffBarTitle.setText("Video found");
+        if (sniffBarDomain != null) {
+            try { sniffBarDomain.setText(new java.net.URL(tab.sniffedUrl).getHost()); }
+            catch (Exception e) { sniffBarDomain.setText(""); }
+        }
+        sniffBar.setVisibility(android.view.View.VISIBLE);
+        try {
+            ObjectAnimator anim = ObjectAnimator.ofFloat(sniffBar, "translationY", dpToPx(80), 0);
+            anim.setDuration(300); anim.start();
+        } catch (Exception ignored) {}
+        mainHandler.removeCallbacks(dismissSniffBarRunnable);
+        mainHandler.postDelayed(dismissSniffBarRunnable, 6000);
+    }
+
+    private final Runnable dismissSniffBarRunnable = () -> dismissVideoSniffBar();
+
+    private void dismissVideoSniffBar() {
+        if (sniffBar == null) return;
+        mainHandler.removeCallbacks(dismissSniffBarRunnable);
+        try {
+            ObjectAnimator anim = ObjectAnimator.ofFloat(sniffBar, "translationY", 0, dpToPx(80));
+            anim.setDuration(200);
+            anim.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override public void onAnimationEnd(android.animation.Animator a) {
+                    sniffBar.setVisibility(android.view.View.GONE);
+                }
+            });
+            anim.start();
+        } catch (Exception ignored) {
+            sniffBar.setVisibility(android.view.View.GONE);
+        }
+    }
+
+    /** Format combined download speed for badge. */
+    static String formatBadgeSpeed(long bps) {
+        if (bps < 1_048_576L) return "\u2B07 " + (bps / 1024) + " KB/s";
+        return String.format(java.util.Locale.US, "\u2B07 %.1f MB/s", bps / 1_048_576f);
+    }
+
+    private void updateDlSpeedBadge(long bps) {
+        if (dlSpeedBadge == null) return;
+        boolean anyDownloading = false;
+        for (DownloadTask t : BlazeDownloadManager.get().getTasks())
+            if (t.status == DownloadTask.Status.DOWNLOADING) { anyDownloading = true; break; }
+        if (bps > 0) { consecutiveBadgeZeros = 0; }
+        else { consecutiveBadgeZeros++; }
+        if (anyDownloading || consecutiveBadgeZeros < 3) {
+            if (dlSpeedBadge.getVisibility() != android.view.View.VISIBLE) {
+                dlSpeedBadge.setVisibility(android.view.View.VISIBLE);
+                dlSpeedBadge.setAlpha(0f); dlSpeedBadge.animate().alpha(1f).setDuration(200).start(); }
+            dlSpeedBadge.setText(formatBadgeSpeed(bps));
+        } else {
+            dlSpeedBadge.animate().alpha(0f).setDuration(200).withEndAction(
+                () -> dlSpeedBadge.setVisibility(android.view.View.GONE)).start();
+        }
+    }
+
+    /** Apply data saver WebView settings. */
+    void applyDataSaverSettings(android.webkit.WebView wv) {
+        android.webkit.WebSettings s = wv.getSettings();
+        if (BrowserPrefs.dataSaver(this)) {
+            s.setLoadsImagesAutomatically(false);
+            s.setCacheMode(android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK);
+        } else {
+            s.setLoadsImagesAutomatically(BrowserPrefs.imageQuality(this) > 0);
+            s.setCacheMode(android.webkit.WebSettings.LOAD_DEFAULT);
+        }
+    }
+
+    /** Capture tab screenshot on a background thread. */
+    void captureTabScreenshot(android.webkit.WebView wv) {
+        if (wv == null || wv.getWidth() <= 0 || wv.getHeight() <= 0) return;
+        final int w = wv.getWidth(), h = wv.getHeight();
+        if (Runtime.getRuntime().freeMemory() < 10 * 1024 * 1024L) return; // skip if low memory
+        new Thread(() -> {
+            try {
+                Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+                Canvas c = new Canvas(bmp);
+                // must call draw() on UI thread
+                wv.post(() -> {
+                    try { wv.draw(c); state(wv).thumbnail = scaleThumbnail(bmp); bmp.recycle(); }
+                    catch (Exception ignored) {}
+                });
+            } catch (Exception | OutOfMemoryError ignored) {}
+        }).start();
+    }
+
+    /** Scale bitmap to fit within 480x270. */
+    static Bitmap scaleThumbnail(Bitmap src) {
+        if (src == null) return null;
+        int w = src.getWidth(), h = src.getHeight();
+        if (w <= 0 || h <= 0) return null;
+        float scale = Math.min(480f / w, 270f / h);
+        if (scale >= 1f) return src;
+        try { return Bitmap.createScaledBitmap(src, (int)(w * scale), (int)(h * scale), true); }
+        catch (OutOfMemoryError e) { return null; }
+    }
+
+    /** Resolve homepage input to a URL. */
+    static String resolveHomepageInput(String input) {
+        if (input == null || input.trim().isEmpty()) return null;
+        String s = input.trim();
+        if (s.startsWith("http://") || s.startsWith("https://")) return s;
+        if (!s.contains(" ") && s.contains(".")) return "https://" + s;
+        try { return "https://www.google.com/search?q=" + java.net.URLEncoder.encode(s, "UTF-8"); }
+        catch (Exception e) { return "https://www.google.com/search?q=" + s; }
     }
 
 }

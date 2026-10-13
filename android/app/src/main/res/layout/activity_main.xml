@@ -65,6 +65,19 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Bookmark"
                 android:src="@drawable/ic_star" />
+
+            <!-- Download speed badge (R5) -->
+            <TextView
+                android:id="@+id/dl_speed_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:gravity="center"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:textSize="11sp"
+                android:textColor="@color/primary"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </LinearLayout>
 
         <ProgressBar
@@ -168,6 +181,24 @@
                 android:src="@drawable/ic_home" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- Video sniff bar (R4 - UC Browser style video detection popup) -->
+    <include
+        android:id="@+id/video_sniff_bar_root_wrapper"
+        layout="@layout/video_sniff_bar"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="56dp" />
+
+    <!-- Video sniff bar (R4 - UC Browser style video detection popup) -->
+    <include
+        android:id="@+id/video_sniff_bar_root_wrapper"
+        layout="@layout/video_sniff_bar"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="56dp" />
 
     <!-- Tabs panel -->
     <FrameLayout
@@ -405,6 +436,34 @@
                 <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
             </LinearLayout>
             <TextView
+                android:id="@+id/menu_data_saver"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:text="Data Saver: OFF"
+                android:textSize="14sp"
+                android:textColor="@color/ink"
+                android:background="?attr/selectableItemBackground" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#15000000"/>
+
+            <TextView
+                android:id="@+id/menu_data_saver"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:text="Data Saver: OFF"
+                android:textSize="14sp"
+                android:textColor="@color/ink"
+                android:background="?attr/selectableItemBackground" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#15000000"/>
+
+            <TextView
                 android:id="@+id/menu_close"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
@@ -434,4 +493,44 @@
             <TextView android:id="@+id/fs_rotate" android:layout_width="wrap_content" android:layout_height="48dp" android:gravity="center" android:paddingStart="12dp" android:paddingEnd="12dp" android:text="Rotate" android:textColor="#FFFFFF" android:textStyle="bold"/>
         </LinearLayout>
     </FrameLayout>
+
+    <!-- Network speed overlay (R7) -->
+    <TextView
+        android:id="@+id/net_speed_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="60dp"
+        android:layout_marginEnd="8dp"
+        android:background="#BF000000"
+        android:clickable="false"
+        android:focusable="false"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+
+    <!-- Network speed overlay (R7) -->
+    <TextView
+        android:id="@+id/net_speed_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="60dp"
+        android:layout_marginEnd="8dp"
+        android:background="#BF000000"
+        android:clickable="false"
+        android:focusable="false"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
 </FrameLayout>

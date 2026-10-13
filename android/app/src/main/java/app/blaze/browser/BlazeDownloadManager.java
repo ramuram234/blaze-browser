@@ -27,6 +27,10 @@ public final class BlazeDownloadManager {
     public interface UpdateListener { void onDownloadsChanged(); }
     private volatile UpdateListener uiListener;
 
+    /** Listener for real-time combined download speed (R5 DownloadSpeedBadge). */
+    public interface DownloadProgressListener { void onSpeedUpdate(long combinedBps); }
+    private volatile DownloadProgressListener speedListener;
+
     private BlazeDownloadManager() {}
 
     public static BlazeDownloadManager get() {
@@ -45,6 +49,7 @@ public final class BlazeDownloadManager {
     }
 
     public void setUiListener(UpdateListener l) { uiListener = l; }
+    public void setSpeedListener(DownloadProgressListener l) { speedListener = l; }
 
     /** Start a new download. Returns the task. */
     public DownloadTask enqueue(String url, String referer, String ua, String title) {
@@ -154,5 +159,19 @@ public final class BlazeDownloadManager {
     private void notifyUi() {
         UpdateListener l = uiListener;
         if (l != null) l.onDownloadsChanged();
+        notifySpeed();
+    }
+
+    private void notifySpeed() {
+        DownloadProgressListener sl = speedListener;
+        if (sl == null) return;
+        long combined = 0;
+        for (DownloadTask t : tasks) {
+            if (t.status == DownloadTask.Status.DOWNLOADING) {
+                combined += (long)(t.speedKbps * 1024f);
+            }
+        }
+        final long bps = combined;
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> sl.onSpeedUpdate(bps));
     }
 }

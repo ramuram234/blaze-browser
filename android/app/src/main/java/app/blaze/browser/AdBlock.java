@@ -59,12 +59,23 @@ public final class AdBlock {
 
     public static volatile boolean enabled = true;
     public static volatile boolean powerful = false;
+
+
     public static volatile boolean antiFingerprint = true;
+    public static volatile boolean dataSaverMode = false;
+    private static final String[] TRACKER_PATTERNS = {"analytics","tracker","pixel","beacon","telemetry"};
 
     private AdBlock() {}
 
     public static boolean isAd(Uri uri) {
         if (!enabled || uri == null) return false;
+        // Data Saver mode: also block tracker patterns
+        if (dataSaverMode) {
+            String raw = uri.toString().toLowerCase(Locale.US);
+            for (String p : TRACKER_PATTERNS) {
+                if (raw.contains(p)) return true;
+            }
+        }
         String host = uri.getHost();
         if (host == null) return false;
         host = host.toLowerCase(Locale.US);

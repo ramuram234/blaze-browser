@@ -111,6 +111,29 @@ public class VideoPlayerActivity extends AppCompatActivity {
     // ── Network speed monitor ─────────────────────────────────────────────────
     private NetworkSpeedMonitor speedMonitor;
 
+    // Download progress ring (R11)
+    private DownloadProgressRing downloadRing;
+    private String currentVideoUrl = null;
+    private final Runnable ringPoller = new Runnable() {
+        @Override public void run() {
+            if (downloadRing == null || currentVideoUrl == null) return;
+            DownloadTask task = findTaskByUrl(currentVideoUrl);
+            if (task == null) { downloadRing.setVisibility(android.view.View.GONE); return; }
+            int pct = task.progressPercent();
+            downloadRing.setProgress(pct);
+            if (task.status == DownloadTask.Status.COMPLETED) { downloadRing.setComplete(true); return; }
+            if (task.status == DownloadTask.Status.FAILED || task.status == DownloadTask.Status.CANCELLED) {
+                downloadRing.setVisibility(android.view.View.GONE); return; }
+            handler.postDelayed(this, 1000);
+        }
+    };
+    private DownloadTask findTaskByUrl(String url) {
+        if (url == null) return null;
+        for (DownloadTask t : BlazeDownloadManager.get().getTasks())
+            if (url.equals(t.url)) return t;
+        return null;
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -120,6 +143,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 | WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         ArrayList<String> urls = getIntent().getStringArrayListExtra(EXTRA_URLS);
+        currentVideoUrl = (urls != null && !urls.isEmpty()) ? urls.get(0) : null;
         if (urls == null || urls.isEmpty()) { finish(); return; }
 
         String referer = getIntent().getStringExtra(EXTRA_REFERER);
@@ -144,6 +168,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         settingsPanel  = findViewById(R.id.settings_panel);
         speedOverlay   = (TextView) findViewById(R.id.speed_overlay);
 
+        downloadRing = (DownloadProgressRing) findViewById(R.id.download_progress_ring);
         PlayerView playerView = (PlayerView) findViewById(R.id.player_view);
         View gestureLayer     = findViewById(R.id.gesture_layer);
         ImageButton closeBtn  = (ImageButton) findViewById(R.id.close_player);
@@ -561,6 +586,19 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────────────────
+    @Override protected void onResume() {
+        super.onResume();
+        // Resume ring if download was in progress
+        if (downloadRing != null && currentVideoUrl != null) {
+            DownloadTask t = findTaskByUrl(currentVideoUrl);
+            if (t != null && (t.status == DownloadTask.Status.DOWNLOADING || t.status == DownloadTask.Status.QUEUED)) {
+                downloadRing.setProgress(t.progressPercent());
+                downloadRing.setVisibility(android.view.View.VISIBLE);
+                handler.postDelayed(ringPoller, 1000);
+            }
+        }
+    }
+
     @Override protected void onStop() {
         super.onStop();
         handler.removeCallbacks(autoHideRunnable);
@@ -569,6 +607,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
     @Override protected void onDestroy() {
         handler.removeCallbacksAndMessages(null);
+        handler.removeCallbacks(ringPoller);
         if (speedMonitor != null) speedMonitor.stop();
         if (player != null) { player.release(); player = null; }
         super.onDestroy();

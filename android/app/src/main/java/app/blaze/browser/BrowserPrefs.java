@@ -234,4 +234,12 @@ public final class BrowserPrefs {
 
     public static boolean readerMode(Context context) { return prefs(context).getBoolean("reader_mode", false); }
     public static void setReaderMode(Context context, boolean on) { prefs(context).edit().putBoolean("reader_mode", on).apply(); }
+
+    // Data Saver Mode (R10)
+    public static boolean dataSaver(Context context) {
+        return prefs(context).getBoolean("data_saver", false);
+    }
+    public static void setDataSaver(Context context, boolean on) {
+        prefs(context).edit().putBoolean("data_saver", on).apply();
+    }
 }

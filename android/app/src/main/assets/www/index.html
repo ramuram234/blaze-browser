@@ -1,123 +1,161 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Blaze Browser</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(180deg, #E8F1FB 0%, #FFFFFF 40%);
-      min-height: 100vh;
-    }
-    .header { padding: 28px 20px 0; }
-    .brand { font-size: 26px; font-weight: 300; color: #9DB8D8; letter-spacing: -0.02em; }
-    .search-bar {
-      margin: 18px 16px 0;
-      background: #FFFFFF;
-      border-radius: 28px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-    }
-    .g-logo {
-      width: 24px; height: 24px;
-      font-size: 14px; font-weight: 700;
-      color: #1A73E8;
-      border: 1.5px solid #E0E0E0;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .search-bar input {
-      flex: 1; border: none; outline: none;
-      background: transparent; font-size: 15px;
-      color: #444; padding: 0 10px;
-    }
-    .search-bar input::placeholder { color: #9AA0A6; }
-    .search-icon { font-size: 18px; color: #9AA0A6; cursor: pointer; }
-    .shortcuts { padding: 22px 16px 0; }
-    .shortcuts-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-    }
-    .shortcut-item {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 8px 2px; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .shortcut-item:active { opacity: 0.7; }
-    .shortcut-icon {
-      width: 52px; height: 52px; border-radius: 14px;
-      background: #FFFFFF;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.09);
-      margin-bottom: 6px; overflow: hidden;
-    }
-    .shortcut-icon img { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; }
-    .shortcut-label {
-      font-size: 11px; color: #444;
-      text-align: center; max-width: 56px;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .add-btn .shortcut-icon {
-      background: transparent; border: 2px dashed #CCC; box-shadow: none;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Blaze Browser</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;background:#F0F2F5}
+header{
+  background:linear-gradient(180deg,#1A237E 0%,#283593 55%,#3949AB 100%);
+  padding:28px 16px 24px;color:#fff
+}
+.brand{font-size:22px;font-weight:300;opacity:.85;letter-spacing:-.02em;margin-bottom:16px;text-align:center}
+.search-wrap{
+  background:#fff;border-radius:28px;
+  display:flex;align-items:center;padding:0 14px;
+  box-shadow:0 2px 12px rgba(0,0,0,.25)
+}
+.g-logo{
+  width:26px;height:26px;border-radius:50%;
+  background:#fff;border:1.5px solid #e0e0e0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#1A73E8;flex-shrink:0
+}
+.search-wrap input{
+  flex:1;border:none;outline:none;background:transparent;
+  font-size:15px;color:#333;padding:12px 8px
+}
+.search-wrap input::placeholder{color:#9aa0a6}
+.search-btn{font-size:18px;color:#9aa0a6;cursor:pointer;padding:4px}
+.shortcuts{padding:18px 12px 0}
+.sc-label{font-size:12px;color:#666;margin-bottom:10px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.sc{display:flex;flex-direction:column;align-items:center;padding:8px 2px;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:10px}
+.sc:active{background:rgba(0,0,0,.06)}
+.sc-icon{
+  width:52px;height:52px;border-radius:14px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 1px 6px rgba(0,0,0,.12);margin-bottom:5px;overflow:hidden
+}
+.sc-icon img{width:32px;height:32px;object-fit:contain;border-radius:6px}
+.sc-name{font-size:10px;color:#444;text-align:center;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.add-sc .sc-icon{background:transparent;border:2px dashed #ccc;box-shadow:none}
+.recents{padding:16px 12px 0}
+.rec-label{font-size:12px;color:#666;margin-bottom:8px;font-weight:600}
+.rec-item{
+  display:flex;align-items:center;padding:10px 12px;background:#fff;
+  border-radius:10px;margin-bottom:6px;cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);-webkit-tap-highlight-color:transparent
+}
+.rec-item:active{background:#f0f0f0}
+.rec-fav{
+  width:32px;height:32px;border-radius:8px;background:#e8eaf6;
+  display:flex;align-items:center;justify-content:center;
+  margin-right:12px;font-weight:700;font-size:14px;color:#3949AB;flex-shrink:0
+}
+.rec-fav img{width:22px;height:22px;border-radius:4px}
+.rec-info{flex:1;overflow:hidden}
+.rec-title{font-size:13px;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-url{font-size:11px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.footer{padding:16px 12px 24px;display:flex;justify-content:center}
+.ds-btn{
+  border:none;border-radius:24px;padding:10px 24px;font-size:13px;
+  cursor:pointer;transition:background .2s;font-weight:600
+}
+.ds-off{background:#e0e0e0;color:#555}
+.ds-on{background:#1A73E8;color:#fff}
+</style>
 </head>
 <body>
-  <div class="header">
-    <div class="brand">Blaze Browser</div>
-  </div>
-
-  <form class="search-bar" id="sf">
+<header>
+  <div class="brand">&#9889; Blaze</div>
+  <form class="search-wrap" id="sf" onsubmit="go(event)">
     <div class="g-logo">G</div>
-    <input id="q" type="text" placeholder="Search or Enter URL" autocomplete="off" autocorrect="off"/>
-    <span class="search-icon">&#x1F50D;</span>
+    <input id="q" type="text" placeholder="Search or enter URL" autocomplete="off" autocorrect="off" autocapitalize="off"/>
+    <span class="search-btn" onclick="goBtn()">&#x1F50D;</span>
   </form>
+</header>
 
-  <div class="shortcuts">
-    <div class="shortcuts-grid" id="grid"></div>
-  </div>
+<div class="shortcuts">
+  <div class="sc-label">Quick Access</div>
+  <div class="grid" id="grid"></div>
+</div>
 
-  <script>
-    var S = [
-      ["Google",    "https://www.google.com",                     "google.com"],
-      ["YouTube",   "https://m.youtube.com",                      "youtube.com"],
-      ["Wikipedia", "https://en.wikipedia.org/wiki/Main_Page",    "wikipedia.org"],
-      ["Reddit",    "https://www.reddit.com",                     "reddit.com"],
-      ["X",         "https://x.com",                             "x.com"],
-      ["GitHub",    "https://github.com",                         "github.com"],
-      ["DuckDuckGo","https://duckduckgo.com",                     "duckduckgo.com"],
-      ["Gmail",     "https://mail.google.com",                    "gmail.com"],
-      ["Maps",      "https://maps.google.com",                    "maps.google.com"],
-      ["Add sites", null,                                         null]
-    ];
-    var g = document.getElementById('grid');
-    S.forEach(function(s) {
-      var d = document.createElement('div');
-      d.className = 'shortcut-item' + (s[2] ? '' : ' add-btn');
-      d.innerHTML = '<div class="shortcut-icon">' +
-        (s[2]
-          ? '<img src="https://www.google.com/s2/favicons?domain='+s[2]+'&sz=64" onerror="this.style.display=\'none\'"/>'
-          : '<span style="font-size:22px;color:#CCC">+</span>') +
-        '</div><div class="shortcut-label">' + s[0] + '</div>';
-      if (s[1]) { d.onclick = function() { BlazeBridge.open(s[1]); }; }
-      g.appendChild(d);
+<div class="recents" id="recents-section" style="display:none">
+  <div class="rec-label">Recently Visited</div>
+  <div id="recents-list"></div>
+</div>
+
+<div class="footer">
+  <button id="ds-btn" class="ds-btn ds-off" onclick="toggleDs()">Data Saver: OFF</button>
+</div>
+
+<script>
+var SITES=[
+  ["Google","https://www.google.com","google.com"],
+  ["YouTube","https://m.youtube.com","youtube.com"],
+  ["Facebook","https://m.facebook.com","facebook.com"],
+  ["Twitter","https://x.com","x.com"],
+  ["Instagram","https://www.instagram.com","instagram.com"],
+  ["Wikipedia","https://en.wikipedia.org/wiki/Main_Page","wikipedia.org"],
+  ["Reddit","https://www.reddit.com","reddit.com"],
+  ["Amazon","https://www.amazon.com","amazon.com"],
+  ["GitHub","https://github.com","github.com"],
+  ["+",null,null]
+];
+var g=document.getElementById("grid");
+SITES.forEach(function(s){
+  var d=document.createElement("div");
+  d.className="sc"+(s[2]?"":" add-sc");
+  d.innerHTML='<div class="sc-icon">'+
+    (s[2]?'<img src="https://www.google.com/s2/favicons?domain='+s[2]+'&sz=64" onerror="this.style.display=\'none\'"/>':
+      '<span style="font-size:22px;color:#ccc">+</span>')+
+    '</div><div class="sc-name">'+s[0]+'</div>';
+  if(s[1])d.onclick=function(){window.BlazeBridge.navigate(s[1]);};
+  g.appendChild(d);
+});
+
+function go(e){e.preventDefault();var q=document.getElementById("q").value.trim();if(q)window.BlazeBridge.navigate(window.BlazeBridge.resolveInput(q));}
+function goBtn(){var q=document.getElementById("q").value.trim();if(q)window.BlazeBridge.navigate(window.BlazeBridge.resolveInput(q));}
+
+// Load recently visited
+try{
+  var hist=JSON.parse(window.BlazeBridge.getHistory());
+  if(hist&&hist.length>0){
+    document.getElementById("recents-section").style.display="block";
+    var rl=document.getElementById("recents-list");
+    hist.forEach(function(h){
+      var div=document.createElement("div");
+      div.className="rec-item";
+      var letter=(h.t||"?")[0].toUpperCase();
+      var domain=""; try{domain=new URL(h.u).hostname;}catch(e){}
+      div.innerHTML='<div class="rec-fav">'+
+        (domain?'<img src="https://www.google.com/s2/favicons?domain='+domain+'&sz=64" onerror="this.innerHTML=\''+letter+'\'"/>':letter)+
+        '</div><div class="rec-info"><div class="rec-title">'+h.t+'</div><div class="rec-url">'+domain+'</div></div>';
+      div.onclick=function(){window.BlazeBridge.navigate(h.u);};
+      rl.appendChild(div);
     });
-    document.getElementById('sf').onsubmit = function(e) {
-      e.preventDefault();
-      var q = document.getElementById('q').value.trim();
-      if (q) BlazeBridge.open(q);
-    };
-    document.querySelector('.search-icon').onclick = function() {
-      var q = document.getElementById('q').value.trim();
-      if (q) BlazeBridge.open(q);
-    };
-  </script>
+  }
+}catch(e){}
+
+// Data saver state
+try{
+  var dsOn=window.BlazeBridge.getDataSaverEnabled();
+  var dsBtn=document.getElementById("ds-btn");
+  if(dsOn){dsBtn.textContent="Data Saver: ON";dsBtn.className="ds-btn ds-on";}
+}catch(e){}
+
+function toggleDs(){
+  try{
+    var dsBtn=document.getElementById("ds-btn");
+    var on=dsBtn.className.indexOf("ds-on")<0;
+    window.BlazeBridge.setDataSaver(on);
+    dsBtn.textContent="Data Saver: "+(on?"ON":"OFF");
+    dsBtn.className="ds-btn "+(on?"ds-on":"ds-off");
+  }catch(e){}
+}
+</script>
 </body>
 </html>
