@@ -1,15 +1,40 @@
 plugins {
     id "com.android.application"
 }
-
 android {
     namespace "app.blaze.browser"
     compileSdk 36
-
     defaultConfig {
         applicationId "app.blaze.browser"
         minSdk 24
         targetSdk 36
-        versionCode 10
-        versionName "3.0.0"
+        versionCode 11
+        versionName "4.0.0"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+}
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "androidx.core:core:1.13.1"
+    implementation "androidx.activity:activity:1.9.2"
+    implementation "androidx.media3:media3-exoplayer:1.4.1"
+    implementation "androidx.media3:media3-exoplayer-hls:1.4.1"
+    implementation "androidx.media3:media3-datasource:1.4.1"
+    implementation "androidx.media3:media3-ui:1.4.1"
+}
+configurations.configureEach {
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk7"
+    exclude group: "org.jetbrains.kotlin", module: "kotlin-stdlib-jdk8"
 }
