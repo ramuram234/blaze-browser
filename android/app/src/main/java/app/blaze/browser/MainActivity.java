@@ -323,11 +323,13 @@ public class MainActivity extends AppCompatActivity {
                     view.evaluateJavascript("(function(){var o=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){if(!this.hasAttribute('ba')){this.muted=true;}return o.apply(this,arguments);};document.addEventListener('click',function(e){var v=e.target;while(v){if(v.tagName=='VIDEO'||v.tagName=='AUDIO'){v.setAttribute('ba','1');break;}v=v.parentElement;}},true);})()", null);
                 }
                 if (url != null && !url.startsWith("file:") && BrowserPrefs.nightMode(MainActivity.this)) {
+                    // Night mode: CSS filter invert on page, re-invert images/video so they look natural.
                     view.evaluateJavascript(
-                            "(function(){var s=document.getElementById('blaze-night');if(s)return;"
-                                    + "s=document.createElement('style');s.id='blaze-night';"
-                                    + "s.textContent='html,body{background:#121212!important;color:#eee!important}a{color:#8ab4f8!important}';"
-                                    + "document.documentElement.appendChild(s);})();",
+                            "(function(){var id='blaze-night';if(document.getElementById(id))return;"
+                            + "var s=document.createElement('style');s.id=id;"
+                            + "s.textContent='html{filter:invert(90%) hue-rotate(180deg)!important;background:#111!important;}'"
+                            + "+'html img,html video,html canvas,html picture{filter:invert(110%) hue-rotate(180deg)!important;}';"
+                            + "(document.head||document.documentElement).appendChild(s);})();",
                             null);
                 }
             }
@@ -996,7 +998,25 @@ public class MainActivity extends AppCompatActivity {
         wireMenuBtn(R.id.menu_bookmarks, v -> { hideMenuSheet(); showPageList("Bookmarks", BrowserPrefs.bookmarks(this)); });
         wireMenuBtn(R.id.menu_history,   v -> { hideMenuSheet(); showPageList("History",   BrowserPrefs.history(this)); });
         wireMenuBtn(R.id.menu_downloads, v -> { hideMenuSheet(); startActivity(new android.content.Intent(this, DownloadsActivity.class)); });
-        wireMenuBtn(R.id.menu_night,     v -> { boolean on = !BrowserPrefs.nightMode(this); BrowserPrefs.setNightMode(this,on); current().reload(); hideMenuSheet(); Toast.makeText(this,on?"Night on":"Night off",Toast.LENGTH_SHORT).show(); });
+        wireMenuBtn(R.id.menu_night, v -> {
+            boolean on = !BrowserPrefs.nightMode(this);
+            BrowserPrefs.setNightMode(this, on);
+            hideMenuSheet();
+            if (on) {
+                // Inject night mode CSS immediately — no reload needed
+                current().evaluateJavascript(
+                    "(function(){var id='blaze-night';if(document.getElementById(id))return;"
+                    + "var s=document.createElement('style');s.id=id;"
+                    + "s.textContent='html{filter:invert(90%) hue-rotate(180deg)!important;background:#111!important;}'"
+                    + "+'html img,html video,html canvas,html picture{filter:invert(110%) hue-rotate(180deg)!important;}';"
+                    + "(document.head||document.documentElement).appendChild(s);})();", null);
+            } else {
+                // Remove night mode CSS without reload
+                current().evaluateJavascript(
+                    "(function(){var s=document.getElementById('blaze-night');if(s)s.parentNode.removeChild(s);})();", null);
+            }
+            Toast.makeText(this, on ? "Night mode ON" : "Night mode OFF", Toast.LENGTH_SHORT).show();
+        });
         wireMenuBtn(R.id.menu_settings_btn, v -> { hideMenuSheet(); startActivity(new android.content.Intent(this, SettingsActivity.class)); });
         wireMenuBtn(R.id.menu_add_bookmark, v -> { String pg=current().getUrl(); if(pg!=null&&!pg.startsWith("file:"))BrowserPrefs.toggleBookmark(this,state(current()).title,pg); Toast.makeText(this,"Bookmarks updated",Toast.LENGTH_SHORT).show(); hideMenuSheet(); });
         wireMenuBtn(R.id.menu_refresh, v -> { String url=current().getUrl(); if(url==null||url.startsWith("file:"))current().loadUrl(HOME); else current().reload(); hideMenuSheet(); });

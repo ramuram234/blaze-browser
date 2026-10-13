@@ -14,15 +14,20 @@
         app:show_buffering="when_playing"
         app:use_controller="false" />
 
-    <!-- Gesture layer stays between the top and bottom bars so those buttons stay tappable -->
+    <!--
+        Gesture layer sits between player_view and the control overlays.
+        marginTop=56dp clears the top bar; marginBottom=96dp clears seek row.
+        marginEnd=60dp clears the always-visible download button on the right.
+    -->
     <View
         android:id="@+id/gesture_layer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="56dp"
-        android:layout_marginBottom="120dp" />
+        android:layout_marginBottom="96dp"
+        android:layout_marginEnd="60dp" />
 
-    <!-- HUD overlay (seek/volume/brightness text) -->
+    <!-- HUD overlay (seek / volume / brightness feedback) -->
     <TextView
         android:id="@+id/hud"
         android:layout_width="wrap_content"
@@ -38,7 +43,7 @@
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <!-- Lock icon - left side overlay -->
+    <!-- Lock icon - left side (shown when screen is locked) -->
     <TextView
         android:id="@+id/btn_lock_icon"
         android:layout_width="44dp"
@@ -51,20 +56,42 @@
         android:textSize="18sp"
         android:visibility="gone" />
 
-    <!-- Download icon - right side overlay -->
+    <!--
+        Download button - always visible on the right edge.
+        Uses elevation so it receives touches before gesture_layer.
+    -->
     <TextView
         android:id="@+id/btn_download_overlay"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_gravity="center_vertical|end"
-        android:layout_marginEnd="16dp"
-        android:background="#66000000"
+        android:layout_marginEnd="4dp"
+        android:background="#CC000000"
         android:gravity="center"
         android:text="&#11015;"
-        android:textSize="18sp"
-        android:visibility="gone" />
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:elevation="4dp"
+        android:visibility="visible" />
 
-    <!-- Data usage meter - subtle top-right corner, shows with controls -->
+    <!-- Live network speed indicator - top-left corner -->
+    <TextView
+        android:id="@+id/speed_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="64dp"
+        android:layout_marginStart="12dp"
+        android:background="#99000000"
+        android:paddingStart="8dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="3dp"
+        android:textColor="#44FFFFFF"
+        android:textSize="10sp"
+        android:visibility="invisible" />
+
+    <!-- Data usage meter - top-right corner (shown while controls visible) -->
     <TextView
         android:id="@+id/data_meter"
         android:layout_width="wrap_content"
@@ -74,25 +101,26 @@
         android:layout_marginEnd="12dp"
         android:background="#99000000"
         android:paddingStart="8dp"
-        android:paddingTop="4dp"
+        android:paddingTop="3dp"
         android:paddingEnd="8dp"
-        android:paddingBottom="4dp"
-        android:text="📶 0 B"
+        android:paddingBottom="3dp"
+        android:text="&#128246; 0 B"
         android:textColor="#CCFFFFFF"
         android:textSize="11sp"
         android:visibility="gone" />
 
-    <!-- Top bar: back + title + ... menu (UC Browser style) -->
+    <!-- Top bar: back + title + menu -->
     <LinearLayout
         android:id="@+id/player_top_bar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_gravity="top"
-        android:background="#88000000"
+        android:background="#CC000000"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="4dp"
-        android:paddingEnd="4dp">
+        android:paddingEnd="4dp"
+        android:elevation="2dp">
 
         <ImageButton
             android:id="@+id/close_player"
@@ -125,7 +153,7 @@
             android:textSize="22sp" />
     </LinearLayout>
 
-    <!-- Bottom controls (UC Browser style) -->
+    <!-- Bottom controls bar -->
     <LinearLayout
         android:id="@+id/player_bottom"
         android:layout_width="match_parent"
@@ -135,10 +163,11 @@
         android:orientation="vertical"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
+        android:paddingTop="6dp"
         android:paddingBottom="8dp"
-        android:paddingTop="8dp">
+        android:elevation="2dp">
 
-        <!-- Time + Seek bar row -->
+        <!-- Time row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -149,7 +178,7 @@
                 android:id="@+id/time_current"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="00:00"
+                android:text="0:00"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp" />
 
@@ -168,16 +197,16 @@
                 android:id="@+id/time_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="00:00"
+                android:text="0:00"
                 android:textColor="#AAAAAA"
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Controls row: pause, speed, PiP, CC, audio, resize -->
+        <!-- Controls row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -191,7 +220,10 @@
                 android:textColor="#FFFFFF"
                 android:textSize="18sp" />
 
-            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <!-- Speed -->
             <TextView
@@ -235,20 +267,10 @@
                 android:text="&#127911;"
                 android:textColor="#AAAAAA"
                 android:textSize="18sp" />
-
-            <!-- Resize/Fullscreen -->
-            <TextView
-                android:id="@+id/btn_resize"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:gravity="center"
-                android:text="&#9974;"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Hint overlay (shown briefly on start) -->
+    <!-- Hint overlay (shown on first launch) -->
     <TextView
         android:id="@+id/hint"
         android:layout_width="wrap_content"
@@ -257,12 +279,12 @@
         android:layout_marginTop="80dp"
         android:background="#CC0C0D10"
         android:padding="12dp"
-        android:text="Swipe left/right to seek  |  Left: brightness  |  Right: volume"
+        android:text="Tap to show/hide controls  |  Swipe to seek, brightness, volume"
         android:textAlignment="center"
         android:textColor="#FFFFFF"
         android:textSize="13sp" />
 
-    <!-- Settings side panel (slides in from right, like UC Browser) -->
+    <!-- Settings panel (slides in from right) -->
     <LinearLayout
         android:id="@+id/settings_panel"
         android:layout_width="180dp"
@@ -271,6 +293,7 @@
         android:background="#CC1A1A1A"
         android:orientation="vertical"
         android:padding="8dp"
+        android:elevation="8dp"
         android:visibility="gone">
 
         <TextView
@@ -291,31 +314,26 @@
             android:textColor="#FFFFFF"
             android:textSize="13sp" />
 
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
-
-        <TextView
-            android:id="@+id/panel_hw_decoder"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:padding="12dp"
-            android:text="HW Decoder: On"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp" />
+            android:layout_height="1dp"
+            android:background="#44FFFFFF" />
 
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
-
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
         <TextView
             android:id="@+id/panel_preload_label"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:gravity="center_vertical"
             android:padding="12dp"
-            android:text="Data save: Normal"
+            android:text="Buffer: Normal"
             android:textColor="#FFFFFF"
             android:textSize="13sp" />
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#44FFFFFF"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#44FFFFFF" />
+
         <TextView
             android:id="@+id/panel_speed_label"
             android:layout_width="match_parent"
@@ -326,4 +344,5 @@
             android:textColor="#FFFFFF"
             android:textSize="13sp" />
     </LinearLayout>
+
 </FrameLayout>
