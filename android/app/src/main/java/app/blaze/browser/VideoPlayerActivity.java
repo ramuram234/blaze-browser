@@ -103,9 +103,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private static final float TAP_THRESHOLD_PX = 30f;
 
     // ── Auto-hide ─────────────────────────────────────────────────────────────
-    private static final long CONTROLS_TIMEOUT_MS = 3500;
+    private static final long CONTROLS_TIMEOUT_MS = 4000; // UC Browser: 4 seconds before auto-hide
     private final Runnable autoHideRunnable = () -> {
-        if (player != null && player.isPlaying()) hideControls();
+        // Only auto-hide if video is playing AND controls are currently visible
+        if (player != null && player.isPlaying() && controlsVisible) hideControls();
     };
 
     // ── Network speed monitor ─────────────────────────────────────────────────
@@ -225,6 +226,12 @@ public class VideoPlayerActivity extends AppCompatActivity {
         });
 
         PlayerView playerView = (PlayerView) findViewById(R.id.player_view);
+        // UC Browser backup: PlayerView also shows controls on tap
+        if (playerView != null) {
+            playerView.setOnClickListener(v -> {
+                if (!controlsVisible) showControls();
+            });
+        }
         View gestureLayer     = findViewById(R.id.gesture_layer);
         ImageButton closeBtn  = (ImageButton) findViewById(R.id.close_player);
         View pipBtn    = findViewById(R.id.pip_player);
@@ -408,7 +415,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         if (controlsTop    != null) controlsTop.setVisibility(View.VISIBLE);
         if (controlsBottom != null) controlsBottom.setVisibility(View.VISIBLE);
         if (downloadBtn    != null) downloadBtn.setVisibility(View.VISIBLE);
-        if (dataMeter      != null) dataMeter.setVisibility(View.VISIBLE);
+        // Don't unconditionally show dataMeter - it may not have data yet
         controlsVisible = true;
         resetAutoHide();
     }
@@ -491,10 +498,17 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 float dx = event.getX() - gestureDownX;
                 float dy = event.getY() - gestureDownY;
                 float viewW = 1080f, viewH = 1920f;
+                // UC Browser: use actual screen dimensions for gesture calculations
+                // gesture_layer now covers full screen, so gl dimensions = screen dimensions
                 View gl = findViewById(R.id.gesture_layer);
                 if (gl != null && gl.getWidth() > 0) {
                     viewW = gl.getWidth();
                     viewH = gl.getHeight();
+                } else {
+                    // Fallback: use display metrics
+                    android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+                    viewW = dm.widthPixels;
+                    viewH = dm.heightPixels;
                 }
 
                 if ("pending".equals(gestureMode)) {
@@ -537,8 +551,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                if (!gestureMoved) {
-                    // Single tap: toggle controls visibility
+                // UC Browser tap detection: any ACTION_UP without movement = tap
+                // "pending" gestureMode = finger never moved enough to start a swipe
+                boolean wasTap = !gestureMoved && ("pending".equals(gestureMode) || "none".equals(gestureMode));
+                if (wasTap) {
                     if (!controlsVisible) {
                         showControls();
                     } else {

@@ -15,17 +15,17 @@
         app:use_controller="false" />
 
     <!--
-        Gesture layer sits between player_view and the control overlays.
-        marginTop=56dp clears the top bar; marginBottom=96dp clears seek row.
-        marginEnd=60dp clears the always-visible download button on the right.
+        Gesture layer covers the FULL screen.
+        UC Browser fix: no margins - control bars are higher Z-order (later in XML)
+        so they receive touches first when visible. When hidden, the full screen
+        is clickable to show controls.
     -->
     <View
         android:id="@+id/gesture_layer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="56dp"
-        android:layout_marginBottom="96dp"
-        android:layout_marginEnd="60dp" />
+        android:clickable="true"
+        android:focusable="false" />
 
     <!-- HUD overlay (seek / volume / brightness feedback) -->
     <TextView
