@@ -142,7 +142,7 @@ public class DownloadsActivity extends AppCompatActivity
 
         // Row 1: filename
         TextView name = new TextView(this);
-        name.setText(t.filename);
+        name.setText(t.filename);  // UC Browser: download_task_name
         name.setTextSize(14);
         name.setTextColor(Color.parseColor("#111111"));
         name.setTypeface(null, android.graphics.Typeface.BOLD);

@@ -4,20 +4,415 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/bg">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
-        android:gravity="center_vertical" android:paddingStart="4dp"
-        android:background="@color/surface" android:elevation="1dp">
-        <ImageButton android:id="@+id/btn_back" android:layout_width="48dp"
-            android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_back" android:contentDescription="Back"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Settings" android:textSize="18sp" android:textColor="@color/ink"
-            android:textStyle="bold" android:layout_marginStart="4dp"/>
+
+    <!-- Toolbar (UC Browser back + title) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/surface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:elevation="4dp">
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:contentDescription="Back" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Settings"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/ink"
+            android:paddingStart="4dp" />
     </LinearLayout>
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider"/>
+
     <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
-        <LinearLayout android:id="@+id/settings_list" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:orientation="vertical"
-            android:background="@color/surface"/>
+        <LinearLayout
+            android:id="@+id/settings_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- UC Browser: General section header -->
+            <TextView
+                android:id="@+id/setting_head_general"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:text="General"
+                android:textSize="12sp"
+                android:textColor="@color/muted"
+                android:background="#F5F5F5" />
+
+            <!-- UC Browser: Set as default browser -->
+            <LinearLayout
+                android:id="@+id/set_as_default"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:id="@+id/setting_item_setdeft"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Set as Default Browser"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Ad Block Setting -->
+            <LinearLayout
+                android:id="@+id/item_ad_settings"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Ad Block Setting"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Browsing Settings -->
+            <LinearLayout
+                android:id="@+id/item_browsing_settings"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Browsing Settings"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Sound Enhancement (setting_sound_enhance) -->
+            <LinearLayout
+                android:id="@+id/sound_enhance"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/sound_enhance_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sound Enhancement"
+                        android:textSize="15sp"
+                        android:textColor="@color/ink" />
+                </LinearLayout>
+                <ImageView
+                    android:id="@+id/sound_enhance_arrow"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Auto Sleep (auto_sleep) -->
+            <LinearLayout
+                android:id="@+id/auto_sleep"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:id="@+id/setting_item_autoslp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Auto Sleep After Video"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <TextView
+                    android:id="@+id/auto_sleep_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Off"
+                    android:textSize="14sp"
+                    android:textColor="@color/muted"
+                    android:paddingEnd="8dp" />
+                <ImageView
+                    android:id="@+id/auto_sleep_arrow"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: WiFi Only Download (wifi_only) -->
+            <LinearLayout
+                android:id="@+id/wifi_only"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/wifi_only_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Download on WiFi Only"
+                        android:textSize="15sp"
+                        android:textColor="@color/ink" />
+                    <TextView
+                        android:id="@+id/wifi_only_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Save mobile data"
+                        android:textSize="12sp"
+                        android:textColor="@color/muted" />
+                </LinearLayout>
+                <Switch
+                    android:id="@+id/wifi_only_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Play Setting section -->
+            <TextView
+                android:id="@+id/setting_head_support"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:text="Player"
+                android:textSize="12sp"
+                android:textColor="@color/muted"
+                android:background="#F5F5F5" />
+
+            <!-- UC Browser: Play Settings -->
+            <LinearLayout
+                android:id="@+id/play_setting"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:id="@+id/setting_item_play"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Play Settings"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <ImageView
+                    android:id="@+id/setting_item_play_arrow"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Download Settings -->
+            <LinearLayout
+                android:id="@+id/item_download_settings"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Download Settings"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser Support section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:text="Support"
+                android:textSize="12sp"
+                android:textColor="@color/muted"
+                android:background="#F5F5F5" />
+
+            <!-- UC Browser: Clear Records -->
+            <LinearLayout
+                android:id="@+id/item_clear_records"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Clear Records"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Clear Cookies -->
+            <LinearLayout
+                android:id="@+id/item_clear_cookies"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Clear Cookies"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Feedback (feedbacks) -->
+            <LinearLayout
+                android:id="@+id/feedbacks"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:id="@+id/setting_item_feedback"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Feedback"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <ImageView
+                    android:id="@+id/setting_arrow_feedback"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@android:drawable/arrow_down_float"
+                    android:contentDescription="Arrow" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: Create Shortcut (setting_create_shortcut) -->
+            <LinearLayout
+                android:id="@+id/setting_create_shortcut"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Create Shortcut on Home Screen"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+            </LinearLayout>
+            <View android:layout_width="match_parent" android:layout_height="1dp"
+                android:background="@color/divider" android:layout_marginStart="20dp" />
+
+            <!-- UC Browser: About -->
+            <LinearLayout
+                android:id="@+id/item_about"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:background="?attr/selectableItemBackground">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="About Blaze Browser"
+                    android:textSize="15sp"
+                    android:textColor="@color/ink" />
+                <TextView
+                    android:id="@+id/about_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="v4.0"
+                    android:textSize="13sp"
+                    android:textColor="@color/muted" />
+            </LinearLayout>
+
+        </LinearLayout>
     </ScrollView>
 </LinearLayout>

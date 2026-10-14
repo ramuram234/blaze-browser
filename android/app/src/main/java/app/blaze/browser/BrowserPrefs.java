@@ -293,4 +293,12 @@ public final class BrowserPrefs {
     public static void setBlockImages(Context context, boolean on) {
         prefs(context).edit().putBoolean("block_images", on).apply();
     }
+
+    // UC Browser: wifi_only - Download on WiFi only
+    public static boolean downloadOnWifiOnly(Context context) {
+        return prefs(context).getBoolean("dl_wifi_only", false);
+    }
+    public static void setDownloadOnWifiOnly(Context context, boolean on) {
+        prefs(context).edit().putBoolean("dl_wifi_only", on).apply();
+    }
 }

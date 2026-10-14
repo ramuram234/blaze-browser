@@ -347,65 +347,155 @@
         android:textColor="#FFFFFF"
         android:textSize="13sp" />
 
-    <!-- Settings panel (slides in from right) -->
+    <!-- UC Browser fragment_play_setting.xml: Player settings panel -->
     <LinearLayout
         android:id="@+id/settings_panel"
-        android:layout_width="180dp"
+        android:layout_width="220dp"
         android:layout_height="wrap_content"
         android:layout_gravity="end|center_vertical"
-        android:background="#CC1A1A1A"
+        android:background="#EE1A1A1A"
         android:orientation="vertical"
-        android:padding="8dp"
         android:elevation="8dp"
         android:visibility="gone">
 
+        <!-- Header -->
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="Player Settings"
+            android:layout_height="40dp"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:text="Play Settings"
             android:textColor="#AAAAAA"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:background="#11FFFFFF" />
 
-        <TextView
-            android:id="@+id/panel_bg_audio"
+        <!-- UC Browser: play_setting_auto_play -->
+        <RelativeLayout
+            android:id="@+id/play_setting_auto_play"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/play_setting_auto_play_text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="Auto Play"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:layout_alignParentStart="true" />
+            <Switch
+                android:id="@+id/play_setting_auto_play_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
+
+        <!-- UC Browser: play_setting_playlist_reminder -->
+        <RelativeLayout
+            android:id="@+id/play_setting_playlist_reminder"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/play_setting_playlist_reminder_text"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="Playlist Reminder"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:layout_alignParentStart="true" />
+            <Switch
+                android:id="@+id/play_setting_playlist_reminder_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
+
+        <!-- Background Audio -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/panel_bg_audio_label"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="Background Audio"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:layout_alignParentStart="true" />
+            <Switch
+                android:id="@+id/panel_bg_audio_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
+
+        <!-- Buffer / Preload mode -->
+        <LinearLayout
+            android:id="@+id/panel_preload_row"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:gravity="center_vertical"
-            android:padding="12dp"
-            android:text="Background Audio: Off"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp" />
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp"
+            android:background="?android:attr/selectableItemBackground">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Buffer Mode"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+            <TextView
+                android:id="@+id/panel_preload_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Normal"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:paddingEnd="8dp" />
+        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#44FFFFFF" />
-
-        <TextView
-            android:id="@+id/panel_preload_label"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:padding="12dp"
-            android:text="Buffer: Normal"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#44FFFFFF" />
-
-        <TextView
-            android:id="@+id/panel_speed_label"
+        <!-- Speed display -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:gravity="center_vertical"
-            android:padding="12dp"
-            android:text="Speed: 1.0x"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp" />
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Speed"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+            <TextView
+                android:id="@+id/panel_speed_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1.0x"
+                android:textColor="#FF9C38"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
 </FrameLayout>

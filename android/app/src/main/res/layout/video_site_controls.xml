@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    UC Browser video_site_controls_layout.xml reimplementation.
+    Shows overlay controls on in-page HTML5 videos:
+    - Little window (PiP) button
+    - Watch Later button
+    - Audio switch button
+    These appear at top-right of the web content area when a video is detected.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/video_ctl_container"
+    android:clickable="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone">
+
+    <!-- UC Browser video_ctl_top_bar: PiP + WatchLater + AudioSwitch -->
+    <LinearLayout
+        android:id="@+id/video_ctl_top_bar"
+        android:layout_gravity="top|end"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="68dp"
+        android:layout_marginEnd="8dp"
+        android:background="#BF000000"
+        android:padding="4dp"
+        android:elevation="4dp">
+
+        <!-- UC Browser: LittleWindowView (PiP) -->
+        <ImageButton
+            android:id="@+id/video_ctl_little_win"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginBottom="4dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_slideshow"
+            android:tint="#FFFFFF"
+            android:contentDescription="Mini Window (PiP)"
+            android:visibility="visible" />
+
+        <!-- UC Browser: WatchLaterButton -->
+        <ImageButton
+            android:id="@+id/video_ctl_watch_later"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginBottom="4dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_watch_later"
+            android:tint="#AAAAAA"
+            android:contentDescription="Watch Later"
+            android:visibility="visible" />
+
+        <!-- UC Browser: AudioSwitchView (mute/unmute) -->
+        <ImageButton
+            android:id="@+id/video_ctl_audio_switch"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:tint="#FFFFFF"
+            android:contentDescription="Audio Switch"
+            android:visibility="visible" />
+    </LinearLayout>
+</FrameLayout>
