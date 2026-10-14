@@ -301,4 +301,12 @@ public final class BrowserPrefs {
     public static void setDownloadOnWifiOnly(Context context, boolean on) {
         prefs(context).edit().putBoolean("dl_wifi_only", on).apply();
     }
+
+    // UC Browser: enable_eyeo_acceptable_rule (AdBlock Plus acceptable ads)
+    public static boolean acceptableAds(Context context) {
+        return prefs(context).getBoolean("acceptable_ads", false);
+    }
+    public static void setAcceptableAds(Context context, boolean on) {
+        prefs(context).edit().putBoolean("acceptable_ads", on).apply();
+    }
 }
