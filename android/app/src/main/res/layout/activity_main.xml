@@ -493,20 +493,6 @@
             <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#15000000"/>
 
             <TextView
-                android:id="@+id/menu_data_saver"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:gravity="center_vertical"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:text="Data Saver: OFF"
-                android:textSize="14sp"
-                android:textColor="@color/ink"
-                android:background="?attr/selectableItemBackground" />
-
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#15000000"/>
-
-            <TextView
                 android:id="@+id/menu_close"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
@@ -537,27 +523,7 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Network speed overlay (R7) -->
-    <TextView
-        android:id="@+id/net_speed_overlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginBottom="60dp"
-        android:layout_marginEnd="8dp"
-        android:background="#BF000000"
-        android:clickable="false"
-        android:focusable="false"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp"
-        android:textColor="#FFFFFF"
-        android:textSize="11sp"
-        android:visibility="gone" />
-
-
-    <!-- Network speed overlay (R7) -->
+    <!-- Network speed overlay -->
     <TextView
         android:id="@+id/net_speed_overlay"
         android:layout_width="wrap_content"

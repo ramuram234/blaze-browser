@@ -5,6 +5,7 @@ import android.app.PictureInPictureParams;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
+import android.media.audiofx.LoudnessEnhancer;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.Uri;
@@ -64,6 +65,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
     // ── Player ───────────────────────────────────────────────────────────────
     private ExoPlayer player;
+    private LoudnessEnhancer loudness;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     // ── Views ────────────────────────────────────────────────────────────────
@@ -285,6 +287,8 @@ public class VideoPlayerActivity extends AppCompatActivity {
         player.setMediaItems(items, 0, 0);
         player.setPlayWhenReady(true);
         player.prepare();
+        scheduleAutoSleep();
+        applySoundEnhance();
 
         player.addListener(new Player.Listener() {
             @Override public void onPlayerError(PlaybackException e) {
@@ -299,6 +303,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 updatePlayPauseBtn(isPlaying);
                 if (isPlaying) resetAutoHide();
                 else           handler.removeCallbacks(autoHideRunnable);
+            }
+            @Override public void onAudioSessionIdChanged(int audioSessionId) {
+                applySoundEnhance();
             }
         });
 
@@ -605,8 +612,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
         String ref = getIntent().getStringExtra(EXTRA_REFERER);
         String ua2 = getIntent().getStringExtra(EXTRA_UA);
         String ttl = getIntent().getStringExtra(EXTRA_TITLE);
-        BlazeDownloadManager.get().enqueue(url, ref, ua2, ttl != null ? ttl : "video");
-        Toast.makeText(this, "Download queued — see Downloads in menu", Toast.LENGTH_SHORT).show();
+        DownloadTask queued = BlazeDownloadManager.get().enqueue(url, ref, ua2, ttl != null ? ttl : "video");
+        if (queued != null) {
+            Toast.makeText(this, "Download queued — see Downloads in menu", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // ── Mobile data warning ────────────────────────────────────────────────────────
@@ -684,6 +693,30 @@ public class VideoPlayerActivity extends AppCompatActivity {
         }
     }
 
+    private void scheduleAutoSleep() {
+        int minutes = BrowserPrefs.autoSleepMinutes(this);
+        if (minutes <= 0) return;
+        handler.postDelayed(() -> {
+            if (player != null) player.pause();
+            Toast.makeText(this, "Auto sleep", Toast.LENGTH_SHORT).show();
+            finish();
+        }, minutes * 60_000L);
+    }
+
+    private void applySoundEnhance() {
+        if (player == null || !BrowserPrefs.soundEnhance(this)) return;
+        int session = player.getAudioSessionId();
+        if (session == 0) return;
+        try {
+            if (loudness != null) loudness.release();
+            loudness = new LoudnessEnhancer(session);
+            loudness.setTargetGain(800);
+            loudness.setEnabled(true);
+        } catch (Exception ignored) {
+            loudness = null;
+        }
+    }
+
     @Override protected void onStop() {
         super.onStop();
         handler.removeCallbacks(autoHideRunnable);
@@ -694,6 +727,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
         handler.removeCallbacksAndMessages(null);
         handler.removeCallbacks(ringPoller);
         if (speedMonitor != null) speedMonitor.stop();
+        if (loudness != null) {
+            try { loudness.release(); } catch (Exception ignored) {}
+            loudness = null;
+        }
         if (player != null) { player.release(); player = null; }
         super.onDestroy();
     }

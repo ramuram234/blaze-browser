@@ -302,6 +302,24 @@ public final class BrowserPrefs {
         prefs(context).edit().putBoolean("dl_wifi_only", on).apply();
     }
 
+    /** Loudness boost in the video player. Separate from page speed boost. */
+    public static boolean soundEnhance(Context context) {
+        return prefs(context).getBoolean("sound_enhance", false);
+    }
+
+    public static void setSoundEnhance(Context context, boolean on) {
+        prefs(context).edit().putBoolean("sound_enhance", on).apply();
+    }
+
+    /** Minutes of playback before the player stops. 0 means off. */
+    public static int autoSleepMinutes(Context context) {
+        return prefs(context).getInt("auto_sleep_min", 0);
+    }
+
+    public static void setAutoSleepMinutes(Context context, int minutes) {
+        prefs(context).edit().putInt("auto_sleep_min", Math.max(0, minutes)).apply();
+    }
+
     // UC Browser: enable_eyeo_acceptable_rule (AdBlock Plus acceptable ads)
     public static boolean acceptableAds(Context context) {
         return prefs(context).getBoolean("acceptable_ads", false);

@@ -5,9 +5,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
 import java.io.File;
 import java.util.*;
@@ -53,6 +57,10 @@ public final class BlazeDownloadManager {
 
     /** Start a new download. Returns the task. */
     public DownloadTask enqueue(String url, String referer, String ua, String title) {
+        if (appContext != null && BrowserPrefs.downloadOnWifiOnly(appContext) && !onWifi()) {
+            Toast.makeText(appContext, "WiFi only is on. Connect to WiFi to download.", Toast.LENGTH_SHORT).show();
+            return null;
+        }
         DownloadTask task = new DownloadTask(url, referer, ua);
         if (title != null && !title.isEmpty()) task.filename = title;
         tasks.add(0, task); // newest first
@@ -68,6 +76,15 @@ public final class BlazeDownloadManager {
         task.start(dir);
         notifyUi();
         return task;
+    }
+
+    private boolean onWifi() {
+        ConnectivityManager cm = (ConnectivityManager) appContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+        Network network = cm.getActiveNetwork();
+        if (network == null) return false;
+        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+        return caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
     }
 
     public List<DownloadTask> getTasks() { return Collections.unmodifiableList(tasks); }

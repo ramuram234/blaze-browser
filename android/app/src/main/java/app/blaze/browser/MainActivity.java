@@ -227,9 +227,12 @@ public class MainActivity extends AppCompatActivity {
                     pi.putExtra(VideoPlayerActivity.EXTRA_UA, current().getSettings().getUserAgentString());
                     startActivity(pi); } dismissVideoSniffBar(); });
             if (sniffBarDownload != null) sniffBarDownload.setOnClickListener(v2 -> {
-                TabState t = state(current()); if (t.sniffedUrl != null)
-                    BlazeDownloadManager.get().enqueue(t.sniffedUrl, current().getUrl(), current().getSettings().getUserAgentString(), "video");
-                Toast.makeText(this, "Download started", Toast.LENGTH_SHORT).show();
+                TabState t = state(current());
+                if (t.sniffedUrl != null) {
+                    DownloadTask queued = BlazeDownloadManager.get().enqueue(
+                            t.sniffedUrl, current().getUrl(), current().getSettings().getUserAgentString(), "video");
+                    if (queued != null) Toast.makeText(this, "Download started", Toast.LENGTH_SHORT).show();
+                }
                 dismissVideoSniffBar(); });
             // Swipe-down to dismiss
             final float[] sniffDownY = {0};
@@ -478,6 +481,9 @@ public class MainActivity extends AppCompatActivity {
                 req.addRequestHeader("User-Agent", userAgent);
                 req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+                if (BrowserPrefs.downloadOnWifiOnly(this)) {
+                    req.setAllowedOverMetered(false);
+                }
                 DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                 if (dm != null) dm.enqueue(req);
                 Toast.makeText(this, "Downloading " + name, Toast.LENGTH_SHORT).show();

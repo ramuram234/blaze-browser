@@ -2,7 +2,11 @@ package app.blaze.browser;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -66,25 +70,33 @@ public class SettingsActivity extends AppCompatActivity {
         // UC Browser: sound_enhance - Sound Enhancement
         View soundEnhance = findViewById(R.id.sound_enhance);
         if (soundEnhance != null) soundEnhance.setOnClickListener(v -> {
-            boolean on = !BrowserPrefs.boost(this);
-            BrowserPrefs.setBoost(this, on);
+            boolean on = !BrowserPrefs.soundEnhance(this);
+            BrowserPrefs.setSoundEnhance(this, on);
             TextView txt = (TextView) soundEnhance.findViewById(R.id.sound_enhance_text);
             if (txt != null) txt.setText("Sound Enhancement: " + (on ? "ON" : "OFF"));
             Toast.makeText(this, "Sound Enhancement: " + (on ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
-        // Init label
         View seTv = findViewById(R.id.sound_enhance_text);
-        if (seTv instanceof TextView) ((TextView)seTv).setText("Sound Enhancement: " + (BrowserPrefs.boost(this) ? "ON" : "OFF"));
+        if (seTv instanceof TextView) ((TextView)seTv).setText("Sound Enhancement: " + (BrowserPrefs.soundEnhance(this) ? "ON" : "OFF"));
 
-        // UC Browser: auto_sleep - Auto Sleep
+        int[] sleepMinutes = {0, 10, 20, 30, 60};
+        String[] sleepLabels = {"Off", "10 min", "20 min", "30 min", "60 min"};
+        TextView sleepCount = findViewById(R.id.auto_sleep_count);
+        if (sleepCount != null) {
+            int saved = BrowserPrefs.autoSleepMinutes(this);
+            String label = "Off";
+            for (int i = 0; i < sleepMinutes.length; i++) {
+                if (sleepMinutes[i] == saved) label = sleepLabels[i];
+            }
+            sleepCount.setText(label);
+        }
         View autoSleep = findViewById(R.id.auto_sleep);
         if (autoSleep != null) autoSleep.setOnClickListener(v -> {
-            String[] options = {"Off", "10 min", "20 min", "30 min", "60 min"};
             new AlertDialog.Builder(this).setTitle("Auto Sleep After Video")
-                .setItems(options, (d, which) -> {
-                    TextView count = (TextView) autoSleep.findViewById(R.id.auto_sleep_count);
-                    if (count != null) count.setText(options[which]);
-                    Toast.makeText(this, "Auto sleep: " + options[which], Toast.LENGTH_SHORT).show();
+                .setItems(sleepLabels, (d, which) -> {
+                    BrowserPrefs.setAutoSleepMinutes(this, sleepMinutes[which]);
+                    if (sleepCount != null) sleepCount.setText(sleepLabels[which]);
+                    Toast.makeText(this, "Auto sleep: " + sleepLabels[which], Toast.LENGTH_SHORT).show();
                 }).show();
         });
 
@@ -109,9 +121,28 @@ public class SettingsActivity extends AppCompatActivity {
         // Download Settings
         View downloadSettings = findViewById(R.id.item_download_settings);
         if (downloadSettings != null) downloadSettings.setOnClickListener(v -> {
-            startActivity(new Intent(this, BrowsingSettingsActivity.class));
-            if (BrowserPrefs.animationsEnabled(this))
-                overridePendingTransition(R.anim.slide_in_right, R.anim.zoom_out);
+            boolean wifi = BrowserPrefs.downloadOnWifiOnly(this);
+            boolean boost = BrowserPrefs.downloadBoost(this);
+            String[] items = {
+                    (wifi ? "On: " : "Off: ") + "WiFi only",
+                    (boost ? "On: " : "Off: ") + "Download boost"
+            };
+            new AlertDialog.Builder(this)
+                    .setTitle("Download Settings")
+                    .setItems(items, (d, which) -> {
+                        if (which == 0) {
+                            BrowserPrefs.setDownloadOnWifiOnly(this, !wifi);
+                            if (wifiSwitch != null) wifiSwitch.setChecked(!wifi);
+                        } else {
+                            BrowserPrefs.setDownloadBoost(this, !boost);
+                        }
+                        Toast.makeText(this, which == 0
+                                ? (!wifi ? "Downloads on WiFi only" : "Downloads on any network")
+                                : (!boost ? "Download boost on" : "Download boost off"), Toast.LENGTH_SHORT).show();
+                    })
+                    .setNeutralButton("Downloads", (d, w) ->
+                            startActivity(new Intent(this, DownloadsActivity.class)))
+                    .show();
         });
 
         // Clear Records
@@ -144,18 +175,22 @@ public class SettingsActivity extends AppCompatActivity {
         // UC Browser: setting_create_shortcut - Create desktop shortcut
         View createShortcut = findViewById(R.id.setting_create_shortcut);
         if (createShortcut != null) createShortcut.setOnClickListener(v -> {
-            try {
-                Intent shortcutIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/ramuram234/blaze-browser"));
-                shortcutIntent.setClassName(this, MainActivity.class.getName());
-                Intent addShortcut = new Intent("com.android.launcher.action.INSTALL_SHORTCUT");
-                addShortcut.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
-                addShortcut.putExtra(Intent.EXTRA_SHORTCUT_NAME, "Blaze Browser");
-                addShortcut.putExtra("duplicate", false);
-                sendBroadcast(addShortcut);
-                Toast.makeText(this, "Shortcut added to home screen", Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                Toast.makeText(this, "Cannot create shortcut", Toast.LENGTH_SHORT).show();
+            if (Build.VERSION.SDK_INT >= 26) {
+                ShortcutManager shortcuts = getSystemService(ShortcutManager.class);
+                if (shortcuts != null && shortcuts.isRequestPinShortcutSupported()) {
+                    Intent open = new Intent(this, MainActivity.class);
+                    open.setAction(Intent.ACTION_MAIN);
+                    ShortcutInfo info = new ShortcutInfo.Builder(this, "blaze-home")
+                            .setShortLabel("Blaze")
+                            .setIcon(Icon.createWithResource(this, R.drawable.ic_launcher))
+                            .setIntent(open)
+                            .build();
+                    shortcuts.requestPinShortcut(info, null);
+                    Toast.makeText(this, "Confirm the shortcut on your home screen", Toast.LENGTH_SHORT).show();
+                    return;
+                }
             }
+            Toast.makeText(this, "This launcher cannot add shortcuts", Toast.LENGTH_SHORT).show();
         });
 
         // About
@@ -163,12 +198,12 @@ public class SettingsActivity extends AppCompatActivity {
         if (about != null) about.setOnClickListener(v ->
             new AlertDialog.Builder(this)
                 .setTitle("Blaze Browser")
-                .setMessage("Version 4.0\nFast, private browser\nBuilt from UC Browser source analysis\nAd blocking + Anti-fingerprinting")
+                .setMessage("Version 4.1.2\nFast browser with ad blocking, downloads, and a video player.")
                 .setPositiveButton("OK", null).show()
         );
 
         // Update version label
         TextView versionTv = (TextView) findViewById(R.id.about_version);
-        if (versionTv != null) versionTv.setText("v4.0");
+        if (versionTv != null) versionTv.setText("v4.1.2");
     }
 }
