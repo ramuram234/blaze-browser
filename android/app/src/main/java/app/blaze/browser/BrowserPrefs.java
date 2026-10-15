@@ -89,7 +89,7 @@ public final class BrowserPrefs {
     }
 
     public static void addHistory(Context context, String title, String url) {
-        if (url == null || url.startsWith("file:") || url.startsWith("about:")) return;
+        if (url == null || url.startsWith("file:") || url.startsWith("about:") || junkUrl(url)) return;
         try {
             JSONArray next = new JSONArray();
             JSONObject item = new JSONObject();
@@ -112,6 +112,14 @@ public final class BrowserPrefs {
 
     public static void clearHistory(Context context) {
         prefs(context).edit().putString("history", "[]").apply();
+    }
+
+    private static boolean junkUrl(String url) {
+        String u = url.toLowerCase(java.util.Locale.US);
+        return u.contains("aff_") || u.contains("click_id") || u.contains("istod.")
+                || u.contains("doubleclick") || u.contains("popads") || u.contains("exoclick")
+                || u.contains("propellerads") || u.contains("/ads/") || u.contains("adclick")
+                || u.contains("rajabets") || AdBlock.isAd(android.net.Uri.parse(url));
     }
 
     public static boolean isBookmarked(Context context, String url) {

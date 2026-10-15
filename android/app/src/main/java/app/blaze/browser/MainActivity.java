@@ -19,7 +19,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.KeyEvent;
+import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
@@ -109,6 +111,37 @@ public class MainActivity extends AppCompatActivity {
     private float downY;
     private boolean gestureMoved;
     private boolean landscapeLock;
+    private int fsOrient = 0;
+    private float pageSpeed = 1f;
+    private View fsControls;
+    private TextView fsTime;
+    private TextView fsPlay;
+    private TextView fsSpeed;
+    private final Runnable fsTicker = new Runnable() {
+        @Override
+        public void run() {
+            if (customView == null) return;
+            current().evaluateJavascript(
+                    "(function(){var list=document.querySelectorAll('video');var v=null;"
+                            + "for(var i=0;i<list.length;i++){if(!list[i].paused)v=list[i];}"
+                            + "if(!v&&list.length)v=list[list.length-1];if(!v)return '';"
+                            + "return Math.floor(v.currentTime)+'|'+Math.floor(v.duration||0)+'|'+(v.paused?0:1);})()",
+                    value -> {
+                        if (value == null || fsTime == null) return;
+                        String raw = value.replace("\"", "");
+                        String[] parts = raw.split("\\|");
+                        if (parts.length < 3) return;
+                        try {
+                            int pos = Integer.parseInt(parts[0]);
+                            int dur = Integer.parseInt(parts[1]);
+                            boolean paused = "0".equals(parts[2]);
+                            fsTime.setText(clock(pos) + " / " + (dur > 0 ? clock(dur) : "--:--"));
+                            if (fsPlay != null) fsPlay.setText(paused ? "Play" : "Pause");
+                        } catch (Exception ignored) {}
+                    });
+            mainHandler.postDelayed(this, 500);
+        }
+    };
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -171,6 +204,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.fs_close).setOnClickListener(v -> exitPageFullscreen());
         findViewById(R.id.fs_pip).setOnClickListener(v -> enterPip());
         findViewById(R.id.fs_rotate).setOnClickListener(v -> toggleRotate());
+        findViewById(R.id.fs_play).setOnClickListener(v -> pageVideo("pause", 0));
+        findViewById(R.id.fs_back).setOnClickListener(v -> pageVideo("seek", -10));
+        findViewById(R.id.fs_fwd).setOnClickListener(v -> pageVideo("seek", 10));
+        findViewById(R.id.fs_jump).setOnClickListener(v -> pageVideo("seek", 30));
+        findViewById(R.id.fs_speed).setOnClickListener(v -> cyclePageSpeed());
+        fsControls = findViewById(R.id.fs_controls);
+        fsTime = findViewById(R.id.fs_time);
+        fsPlay = findViewById(R.id.fs_play);
+        fsSpeed = findViewById(R.id.fs_speed);
         fsGestures.setOnTouchListener(this::onVideoGesture);
         playChip.setOnClickListener(v -> playDetected());
         View bkBtn = findViewById(R.id.btn_bookmark_page);
@@ -892,8 +934,29 @@ public class MainActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
         fullscreenHolder.setVisibility(View.VISIBLE);
+        if (fsChrome != null) {
+            fsChrome.setVisibility(View.VISIBLE);
+            fsChrome.bringToFront();
+        }
+        if (fsControls != null) {
+            fsControls.setVisibility(View.VISIBLE);
+            fsControls.bringToFront();
+        }
+        if (fsHud != null) fsHud.bringToFront();
+        if (netSpeedOverlay != null) netSpeedOverlay.setVisibility(View.GONE);
+        TextView title = findViewById(R.id.fs_title);
+        if (title != null) {
+            String pageTitle = state(current()).title;
+            title.setText(pageTitle == null || pageTitle.isEmpty() ? "Video" : pageTitle);
+        }
+        tameSurface(view);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        applyVideoOrientation();
+        fsOrient = 0;
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        TextView rotate = findViewById(R.id.fs_rotate);
+        if (rotate != null) rotate.setText("Landscape");
+        mainHandler.removeCallbacks(fsTicker);
+        mainHandler.post(fsTicker);
     }
 
     private void exitPageFullscreen() {
@@ -906,6 +969,9 @@ public class MainActivity extends AppCompatActivity {
         customCallback = null;
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        mainHandler.removeCallbacks(fsTicker);
+        if (fsControls != null) fsControls.setVisibility(View.VISIBLE);
+        if (fsChrome != null) fsChrome.setVisibility(View.VISIBLE);
     }
 
     private void applyVideoOrientation() {
@@ -922,10 +988,62 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleRotate() {
-        landscapeLock = !landscapeLock;
-        setRequestedOrientation(landscapeLock
-                ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                : ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+        fsOrient = (fsOrient + 1) % 3;
+        TextView rotate = findViewById(R.id.fs_rotate);
+        if (fsOrient == 0) {
+            landscapeLock = true;
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            if (rotate != null) rotate.setText("Landscape");
+            showFsHud("Landscape");
+        } else if (fsOrient == 1) {
+            landscapeLock = false;
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+            if (rotate != null) rotate.setText("Portrait");
+            showFsHud("Portrait");
+        } else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+            if (rotate != null) rotate.setText("Auto");
+            showFsHud("Auto rotate");
+        }
+    }
+
+    private void pageVideo(String cmd, float val) {
+        String js = "(function(){var list=document.querySelectorAll('video');var v=null;"
+                + "for(var i=0;i<list.length;i++){if(!list[i].paused)v=list[i];}"
+                + "if(!v){for(var j=list.length-1;j>=0;j--){if(list[j].videoWidth>0||list[j].currentTime>0){v=list[j];break;}}}"
+                + "if(!v&&list.length)v=list[list.length-1];if(!v)return 'none';"
+                + "if('" + cmd + "'==='seek'){var d=v.duration||0;var n=v.currentTime+" + val
+                + ";if(d&&isFinite(d))n=Math.max(0,Math.min(d,n));v.currentTime=n;}"
+                + "else if('" + cmd + "'==='pause'){if(v.paused)v.play();else v.pause();}"
+                + "else if('" + cmd + "'==='speed'){v.playbackRate=" + val + ";}"
+                + "return 'ok';})();";
+        current().evaluateJavascript(js, null);
+        if ("seek".equals(cmd)) showFsHud((val > 0 ? "+" : "") + (int) val + "s");
+        else if ("speed".equals(cmd)) showFsHud(val + "x");
+    }
+
+    private void cyclePageSpeed() {
+        pageSpeed = pageSpeed >= 2f ? 0.5f : pageSpeed + 0.5f;
+        String text = pageSpeed == 0.5f ? "0.5x" : (pageSpeed == 1f || pageSpeed == 2f ? ((int) pageSpeed) + ".0x" : pageSpeed + "x");
+        if (fsSpeed != null) fsSpeed.setText(text);
+        pageVideo("speed", pageSpeed);
+    }
+
+    private void tameSurface(View view) {
+        if (view instanceof SurfaceView) {
+            SurfaceView surface = (SurfaceView) view;
+            surface.setZOrderOnTop(false);
+            surface.setZOrderMediaOverlay(false);
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) tameSurface(group.getChildAt(i));
+        }
+    }
+
+    private static String clock(int seconds) {
+        int s = Math.max(0, seconds);
+        return String.format(java.util.Locale.US, "%d:%02d", s / 60, s % 60);
     }
 
     private void enterPip() {
@@ -990,9 +1108,9 @@ public class MainActivity extends AppCompatActivity {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 if (!gestureMoved) {
-                    current().evaluateJavascript(
-                            "(function(){var v=document.querySelector('video');if(!v)return;if(v.paused)v.play();else v.pause();})();",
-                            null);
+                    boolean show = fsControls == null || fsControls.getVisibility() != View.VISIBLE;
+                    if (fsControls != null) fsControls.setVisibility(show ? View.VISIBLE : View.GONE);
+                    if (fsChrome != null) fsChrome.setVisibility(show ? View.VISIBLE : View.GONE);
                 }
                 gestureMode = "none";
                 fsHud.postDelayed(() -> fsHud.setVisibility(View.GONE), 280);
@@ -1012,7 +1130,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         applyNightChrome(BrowserPrefs.nightMode(this));
         netMon.start((formatted, bps) -> {
-            if (netSpeedOverlay == null) return;
+            if (netSpeedOverlay == null || customView != null) return;
             if (bps < 0) return;
             if (bps > 0) {
                 consecutiveNsoZeros = 0;
@@ -1271,10 +1389,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showPageList(String title, java.util.List<String[]> rows) {
-        if (rows.isEmpty()) { Toast.makeText(this, title + " is empty", Toast.LENGTH_SHORT).show(); return; }
-        String[] labels = rows.stream().map(r -> r[0]).toArray(String[]::new);
+        java.util.ArrayList<String[]> clean = new java.util.ArrayList<>();
+        for (String[] row : rows) {
+            if (row.length < 2 || row[1] == null) continue;
+            String u = row[1].toLowerCase(java.util.Locale.US);
+            if (u.contains("aff_") || u.contains("click_id") || u.contains("istod.") || u.contains("rajabets")) continue;
+            clean.add(row);
+        }
+        if (clean.isEmpty()) { Toast.makeText(this, title + " is empty", Toast.LENGTH_SHORT).show(); return; }
+        String[] labels = new String[clean.size()];
+        for (int i = 0; i < clean.size(); i++) {
+            String name = clean.get(i)[0] == null ? clean.get(i)[1] : clean.get(i)[0];
+            if (name.length() > 72) name = name.substring(0, 72) + "…";
+            labels[i] = name;
+        }
         new AlertDialog.Builder(this).setTitle(title)
-            .setItems(labels, (d,i) -> current().loadUrl(rows.get(i)[1]))
+            .setItems(labels, (d,i) -> current().loadUrl(clean.get(i)[1]))
             .setNegativeButton("Close", null).show();
     }
 
