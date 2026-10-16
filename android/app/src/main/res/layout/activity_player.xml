@@ -5,497 +5,111 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <!-- Video surface -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:surface_type="texture_view"
+        app:hide_on_touch="false"
         app:show_buffering="when_playing"
-        app:use_controller="false" />
+        app:show_timeout="4000"
+        app:surface_type="texture_view"
+        app:use_controller="true" />
 
-    <!--
-        Gesture layer covers the FULL screen.
-        UC Browser fix: no margins - control bars are higher Z-order (later in XML)
-        so they receive touches first when visible. When hidden, the full screen
-        is clickable to show controls.
-    -->
     <View
         android:id="@+id/gesture_layer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="true"
-        android:focusable="false" />
+        android:layout_marginTop="64dp"
+        android:layout_marginBottom="120dp" />
 
-    <!-- HUD overlay (seek / volume / brightness feedback) -->
     <TextView
         android:id="@+id/hud"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="#CC1A1A2E"
-        android:paddingStart="20dp"
-        android:paddingTop="14dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="14dp"
+        android:background="#CC111111"
+        android:paddingStart="18dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="12dp"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <!-- Lock icon - left side (shown when screen is locked) -->
-    <TextView
-        android:id="@+id/btn_lock_icon"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_gravity="center_vertical|start"
-        android:layout_marginStart="16dp"
-        android:background="#66000000"
-        android:gravity="center"
-        android:text="&#128274;"
-        android:textSize="18sp"
-        android:visibility="gone" />
-
-    <!--
-        Download button + progress ring (R11).
-        Ring overlaid on top; ring is gone by default.
-    -->
-    <FrameLayout
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:layout_gravity="center_vertical|end"
-        android:layout_marginEnd="4dp"
-        android:elevation="4dp">
-
-        <TextView
-            android:id="@+id/btn_download_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#CC000000"
-            android:gravity="center"
-            android:text="&#11015;"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:visibility="visible" />
-
-        <app.blaze.browser.DownloadProgressRing
-            android:id="@+id/download_progress_ring"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="4dp"
-            android:visibility="gone" />
-    </FrameLayout>
-
-    <!-- Live network speed indicator - top-left corner -->
-    <TextView
-        android:id="@+id/speed_overlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|start"
-        android:layout_marginTop="64dp"
-        android:layout_marginStart="12dp"
-        android:background="#99000000"
-        android:paddingStart="8dp"
-        android:paddingTop="3dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="3dp"
-        android:textColor="#44FFFFFF"
-        android:textSize="10sp"
-        android:visibility="invisible" />
-
-    <!-- Data usage meter - top-right corner (shown while controls visible) -->
-    <TextView
-        android:id="@+id/data_meter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="64dp"
-        android:layout_marginEnd="12dp"
-        android:background="#99000000"
-        android:paddingStart="8dp"
-        android:paddingTop="3dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="3dp"
-        android:text="&#128246; 0 B"
-        android:textColor="#CCFFFFFF"
-        android:textSize="11sp"
-        android:visibility="gone" />
-
-    <!-- Top bar: back + title + menu -->
     <LinearLayout
-        android:id="@+id/player_top_bar"
+        android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_gravity="top"
-        android:background="#CC000000"
+        android:background="#B3000000"
+        android:elevation="12dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
         android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:elevation="2dp">
+        android:paddingEnd="4dp">
 
         <ImageButton
-            android:id="@+id/close_player"
+            android:id="@+id/btn_close"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="@android:color/transparent"
-            android:contentDescription="Back"
-            android:src="@drawable/ic_back" />
+            android:contentDescription="Close"
+            android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
         <TextView
-            android:id="@+id/player_title"
+            android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
-            android:text="Video"
+            android:text="Blaze"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/player_menu_btn"
-            android:layout_width="44dp"
+            android:id="@+id/btn_speed"
+            android:layout_width="wrap_content"
             android:layout_height="48dp"
             android:gravity="center"
-            android:text="&#8943;"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="1.0x"
             android:textColor="#FFFFFF"
-            android:textSize="22sp" />
-    </LinearLayout>
+            android:textStyle="bold" />
 
-    <!-- Bottom controls bar -->
-    <LinearLayout
-        android:id="@+id/player_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#CC000000"
-        android:orientation="vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="8dp"
-        android:elevation="2dp">
-
-        <!-- Time row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/time_current"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0:00"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp" />
-
-            <SeekBar
-                android:id="@+id/seek_bar"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:max="1000"
-                android:progressTint="#FFFFFF"
-                android:thumbTint="#FFFFFF" />
-
-            <TextView
-                android:id="@+id/time_total"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0:00"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- Controls row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <!-- Play/Pause -->
-            <TextView
-                android:id="@+id/btn_play_pause"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:gravity="center"
-                android:text="&#9646;&#9646;"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <!-- Speed -->
-            <TextView
-                android:id="@+id/btn_speed"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:text="1.0x"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <!-- PiP -->
-            <TextView
-                android:id="@+id/pip_player"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:gravity="center"
-                android:text="&#9974;"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp" />
-
-            <!-- Lock -->
-            <TextView
-                android:id="@+id/btn_lock"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:gravity="center"
-                android:text="&#128275;"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp" />
-
-            <!-- BG Audio -->
-            <TextView
-                android:id="@+id/btn_bg_audio"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:gravity="center"
-                android:text="&#127911;"
-                android:textColor="#AAAAAA"
-                android:textSize="18sp" />
-
-            <!-- Rotation cycle button (UC RotationBtn style) -->
-            <ImageButton
-                android:id="@+id/btn_rotate"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Rotate"
-                android:src="@drawable/ic_rotate_auto"
-                android:tint="#FFFFFF" />
-
-            <!-- Watch Later (UC WatchLaterButton style) -->
-            <ImageButton
-                android:id="@+id/btn_watch_later"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Watch Later"
-                android:src="@drawable/ic_watch_later"
-                android:tint="#AAAAAA" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Volume/Brightness hint overlay (UC Browser VolumeBrightnessHintView style) -->
-    <LinearLayout
-        android:id="@+id/volume_brightness_hint"
-        android:layout_width="140dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@drawable/hint_bg"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/hint_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:tint="#FFFFFFFF"
-            android:src="@android:drawable/ic_lock_silent_mode_off"
-            android:contentDescription="Hint" />
-
-        <ProgressBar
-            android:id="@+id/hint_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="110dp"
-            android:layout_height="4dp"
-            android:layout_marginTop="8dp"
-            android:max="100"
-            android:progress="50"
-            android:progressTint="#FFFFFF" />
-
-    </LinearLayout>
-
-    <!-- Hint overlay (shown on first launch) -->
-    <TextView
-        android:id="@+id/hint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|top"
-        android:layout_marginTop="80dp"
-        android:background="#CC0C0D10"
-        android:padding="12dp"
-        android:text="Tap to show/hide controls  |  Swipe to seek, brightness, volume"
-        android:textAlignment="center"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp" />
-
-    <!-- UC Browser fragment_play_setting.xml: Player settings panel -->
-    <LinearLayout
-        android:id="@+id/settings_panel"
-        android:layout_width="220dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|center_vertical"
-        android:background="#EE1A1A1A"
-        android:orientation="vertical"
-        android:elevation="8dp"
-        android:visibility="gone">
-
-        <!-- Header -->
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:text="Play Settings"
-            android:textColor="#AAAAAA"
-            android:textSize="12sp"
-            android:background="#11FFFFFF" />
+            android:id="@+id/btn_download"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="Save"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
 
-        <!-- UC Browser: play_setting_auto_play -->
-        <RelativeLayout
-            android:id="@+id/play_setting_auto_play"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/play_setting_auto_play_text"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:text="Auto Play"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_alignParentStart="true" />
-            <Switch
-                android:id="@+id/play_setting_auto_play_toggle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true" />
-        </RelativeLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
+        <TextView
+            android:id="@+id/btn_pip"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="PiP"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
 
-        <!-- UC Browser: play_setting_playlist_reminder -->
-        <RelativeLayout
-            android:id="@+id/play_setting_playlist_reminder"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/play_setting_playlist_reminder_text"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:text="Playlist Reminder"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_alignParentStart="true" />
-            <Switch
-                android:id="@+id/play_setting_playlist_reminder_toggle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true" />
-        </RelativeLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
-
-        <!-- Background Audio -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp"
-            android:gravity="center_vertical">
-            <TextView
-                android:id="@+id/panel_bg_audio_label"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:text="Background Audio"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:layout_alignParentStart="true" />
-            <Switch
-                android:id="@+id/panel_bg_audio_toggle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true" />
-        </RelativeLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
-
-        <!-- Buffer / Preload mode -->
-        <LinearLayout
-            android:id="@+id/panel_preload_row"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp"
-            android:background="?android:attr/selectableItemBackground">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Buffer Mode"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/panel_preload_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Normal"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:paddingEnd="8dp" />
-        </LinearLayout>
-        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" />
-
-        <!-- Speed display -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Speed"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/panel_speed_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1.0x"
-                android:textColor="#FF9C38"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/btn_rotate"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="Landscape"
+            android:textColor="#FFB020"
+            android:textStyle="bold" />
     </LinearLayout>
-
 </FrameLayout>

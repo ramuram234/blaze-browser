@@ -262,12 +262,10 @@ public class MainActivity extends AppCompatActivity {
             sniffBarPlay = sniffBar.findViewById(R.id.sniff_bar_play);
             sniffBarDownload = sniffBar.findViewById(R.id.sniff_bar_download);
             if (sniffBarPlay != null) sniffBarPlay.setOnClickListener(v2 -> {
-                TabState t = state(current()); if (t.sniffedUrl != null) {
-                    android.content.Intent pi = new android.content.Intent(this, VideoPlayerActivity.class);
-                    pi.putStringArrayListExtra(VideoPlayerActivity.EXTRA_URLS, new ArrayList<>(java.util.Collections.singletonList(t.sniffedUrl)));
-                    pi.putExtra(VideoPlayerActivity.EXTRA_REFERER, current().getUrl());
-                    pi.putExtra(VideoPlayerActivity.EXTRA_UA, current().getSettings().getUserAgentString());
-                    startActivity(pi); } dismissVideoSniffBar(); });
+                TabState t = state(current());
+                if (t.sniffedUrl != null) openMedia3(t.sniffedUrl);
+                dismissVideoSniffBar();
+            });
             if (sniffBarDownload != null) sniffBarDownload.setOnClickListener(v2 -> {
                 TabState t = state(current());
                 if (t.sniffedUrl != null) {
@@ -782,16 +780,30 @@ public class MainActivity extends AppCompatActivity {
         if (videoOverlayBar != null) videoOverlayBar.setVisibility(View.VISIBLE);
     }
 
+    private void openMedia3(String primary) {
+        LinkedHashSet<String> videos = state(current()).videos;
+        ArrayList<String> urls = new ArrayList<>();
+        if (primary != null && primary.startsWith("http")) urls.add(primary);
+        for (String url : videos) {
+            if (url != null && url.startsWith("http") && !urls.contains(url)) urls.add(url);
+        }
+        if (urls.isEmpty()) return;
+        Intent intent = new Intent(this, VideoPlayerActivity.class);
+        intent.putStringArrayListExtra(VideoPlayerActivity.EXTRA_URLS, urls);
+        String page = current().getUrl();
+        intent.putExtra(VideoPlayerActivity.EXTRA_REFERER, page);
+        intent.putExtra(VideoPlayerActivity.EXTRA_UA, current().getSettings().getUserAgentString());
+        intent.putExtra(VideoPlayerActivity.EXTRA_TITLE, state(current()).title);
+        intent.putExtra(VideoPlayerActivity.EXTRA_WIDTH, state(current()).vw);
+        intent.putExtra(VideoPlayerActivity.EXTRA_HEIGHT, state(current()).vh);
+        if (page != null) intent.putExtra(VideoPlayerActivity.EXTRA_COOKIE, CookieManager.getInstance().getCookie(page));
+        startActivity(intent);
+    }
+
     private void playDetected() {
         LinkedHashSet<String> videos = state(current()).videos;
         if (!videos.isEmpty()) {
-            Intent intent = new Intent(this, VideoPlayerActivity.class);
-            intent.putStringArrayListExtra(VideoPlayerActivity.EXTRA_URLS, new ArrayList<>(videos));
-            intent.putExtra(VideoPlayerActivity.EXTRA_REFERER, current().getUrl());
-            intent.putExtra(VideoPlayerActivity.EXTRA_UA, current().getSettings().getUserAgentString());
-            intent.putExtra(VideoPlayerActivity.EXTRA_WIDTH, state(current()).vw);
-            intent.putExtra(VideoPlayerActivity.EXTRA_HEIGHT, state(current()).vh);
-            startActivity(intent);
+            openMedia3(videos.iterator().next());
             return;
         }
         current().evaluateJavascript(
@@ -923,6 +935,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enterPageFullscreen(View view, WebChromeClient.CustomViewCallback callback) {
+        TabState tab = state(current());
+        if (tab.sniffedUrl != null && tab.sniffedUrl.startsWith("http")) {
+            if (callback != null) callback.onCustomViewHidden();
+            openMedia3(tab.sniffedUrl);
+            return;
+        }
         if (customView != null) {
             callback.onCustomViewHidden();
             return;
