@@ -198,12 +198,12 @@ public class SettingsActivity extends AppCompatActivity {
         if (about != null) about.setOnClickListener(v ->
             new AlertDialog.Builder(this)
                 .setTitle("Blaze Browser")
-                .setMessage("Version 4.2.0\nMedia3 1.11 player, ad blocking, and downloads.")
+                .setMessage("Version 4.3.0\nCustom video controls on page videos and direct files.")
                 .setPositiveButton("OK", null).show()
         );
 
         // Update version label
         TextView versionTv = (TextView) findViewById(R.id.about_version);
-        if (versionTv != null) versionTv.setText("v4.2.0");
+        if (versionTv != null) versionTv.setText("v4.3.0");
     }
 }

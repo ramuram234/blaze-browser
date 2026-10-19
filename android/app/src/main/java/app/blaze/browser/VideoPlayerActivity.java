@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
@@ -52,6 +53,12 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private TextView titleView;
     private TextView speedButton;
     private View topBar;
+    private View bottomBar;
+    private TextView playButton;
+    private TextView positionView;
+    private TextView durationView;
+    private SeekBar seekBar;
+    private boolean scrubbing;
     private LoudnessEnhancer loudness;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -80,9 +87,14 @@ public class VideoPlayerActivity extends AppCompatActivity {
         }
         playerView = findViewById(R.id.player_view);
         hud = findViewById(R.id.hud);
-        titleView = findViewById(R.id.title);
-        speedButton = findViewById(R.id.btn_speed);
-        topBar = findViewById(R.id.top_bar);
+        titleView = findViewById(R.id.fs_title);
+        speedButton = findViewById(R.id.fs_speed);
+        topBar = findViewById(R.id.fs_chrome);
+        bottomBar = findViewById(R.id.fs_controls);
+        playButton = findViewById(R.id.fs_play);
+        positionView = findViewById(R.id.fs_position);
+        durationView = findViewById(R.id.fs_duration);
+        seekBar = findViewById(R.id.fs_seek);
         String title = getIntent().getStringExtra(EXTRA_TITLE);
         if (titleView != null && title != null && !title.isEmpty()) titleView.setText(title);
 
@@ -111,8 +123,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 .setMediaSourceFactory(new DefaultMediaSourceFactory(http))
                 .build();
         playerView.setPlayer(player);
-        playerView.setControllerShowTimeoutMs(4_000);
-        playerView.setControllerAutoShow(true);
+        playerView.setUseController(false);
 
         ArrayList<MediaItem> items = new ArrayList<>();
         for (String url : urls) {
@@ -144,20 +155,93 @@ public class VideoPlayerActivity extends AppCompatActivity {
         if (w > 0 && h > w) {
             orient = 1;
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-            ((TextView) findViewById(R.id.btn_rotate)).setText("Portrait");
+            ((TextView) findViewById(R.id.fs_rotate)).setText("Portrait");
         } else {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        ImageButton close = findViewById(R.id.btn_close);
-        close.setOnClickListener(v -> finish());
-        findViewById(R.id.btn_speed).setOnClickListener(v -> cycleSpeed());
-        findViewById(R.id.btn_download).setOnClickListener(v -> saveCurrent());
-        findViewById(R.id.btn_pip).setOnClickListener(v -> enterPip());
-        findViewById(R.id.btn_rotate).setOnClickListener(v -> rotate());
+        findViewById(R.id.fs_close).setOnClickListener(v -> finish());
+        findViewById(R.id.fs_speed).setOnClickListener(v -> cycleSpeed());
+        findViewById(R.id.fs_download).setOnClickListener(v -> saveCurrent());
+        findViewById(R.id.fs_pip).setOnClickListener(v -> enterPip());
+        findViewById(R.id.fs_rotate).setOnClickListener(v -> rotate());
+        findViewById(R.id.fs_lock).setOnClickListener(v -> toggleLock());
+        if (playButton != null) playButton.setOnClickListener(v -> {
+            if (player == null) return;
+            if (player.isPlaying()) player.pause();
+            else player.play();
+            showBars();
+        });
+        if (seekBar != null) seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onStartTrackingTouch(SeekBar bar) { scrubbing = true; showBars(); }
+            @Override public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                if (!fromUser || player == null || positionView == null) return;
+                long dur = player.getDuration();
+                if (dur > 0) positionView.setText(clock(progress * dur / 1000L));
+            }
+            @Override public void onStopTrackingTouch(SeekBar bar) {
+                scrubbing = false;
+                if (player == null) return;
+                long dur = player.getDuration();
+                if (dur > 0) player.seekTo(bar.getProgress() * dur / 1000L);
+            }
+        });
         findViewById(R.id.gesture_layer).setOnTouchListener((v, event) -> onGesture(event));
-        playerView.showController();
+        handler.post(tick);
+        showBars();
+    }
+
+    private final Runnable tick = new Runnable() {
+        @Override public void run() {
+            if (player != null) {
+                long pos = player.getCurrentPosition();
+                long dur = player.getDuration();
+                long buf = player.getBufferedPosition();
+                if (positionView != null) positionView.setText(clock(pos));
+                if (durationView != null) durationView.setText(dur > 0 ? clock(dur) : "--:--");
+                if (playButton != null) playButton.setText(player.isPlaying() ? "Pause" : "Play");
+                if (seekBar != null && !scrubbing && dur > 0) {
+                    seekBar.setProgress((int) Math.min(1000, pos * 1000L / dur));
+                    seekBar.setSecondaryProgress((int) Math.min(1000, buf * 1000L / dur));
+                }
+            }
+            handler.postDelayed(this, 400);
+        }
+    };
+
+    private final Runnable hideBars = () -> setBars(false);
+
+    private void showBars() { setBars(true); }
+
+    private void setBars(boolean show) {
+        if (locked) {
+            if (bottomBar != null) bottomBar.setVisibility(View.GONE);
+            if (topBar != null) topBar.setVisibility(show ? View.VISIBLE : View.GONE);
+            return;
+        }
+        if (topBar != null) topBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (bottomBar != null) bottomBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        handler.removeCallbacks(hideBars);
+        if (show) handler.postDelayed(hideBars, 4000);
+    }
+
+    private void toggleLock() {
+        locked = !locked;
+        TextView lock = findViewById(R.id.fs_lock);
+        if (lock != null) lock.setText(locked ? "Unlock" : "Lock");
+        if (bottomBar != null) bottomBar.setVisibility(locked ? View.GONE : View.VISIBLE);
+        int hide = locked ? View.GONE : View.VISIBLE;
+        for (int id : new int[]{R.id.fs_close, R.id.fs_title, R.id.fs_speed, R.id.fs_download, R.id.fs_pip, R.id.fs_rotate}) {
+            View child = findViewById(id);
+            if (child != null) child.setVisibility(hide);
+        }
+        showHud(locked ? "Locked" : "Unlocked");
+    }
+
+    private static String clock(long ms) {
+        int s = (int) Math.max(0, ms / 1000);
+        return String.format(java.util.Locale.US, "%d:%02d", s / 60, s % 60);
     }
 
     private boolean onGesture(MotionEvent event) {
@@ -193,7 +277,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     moved = true;
                     if (Math.abs(dx) > Math.abs(dy)) mode = "seek";
                     else mode = downX < width / 2f ? "bright" : "volume";
-                    playerView.showController();
+                    showBars();
                 }
                 if ("seek".equals(mode)) {
                     long dur = player.getDuration();
@@ -232,10 +316,8 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     } else {
                         lastTap = now;
                         lastTapX = event.getX();
-                        boolean open = playerView.isControllerFullyVisible();
-                        if (open) playerView.hideController();
-                        else playerView.showController();
-                        if (topBar != null) topBar.setVisibility(open ? View.GONE : View.VISIBLE);
+                        boolean open = topBar != null && topBar.getVisibility() == View.VISIBLE;
+                        setBars(!open);
                     }
                 }
                 mode = "none";
@@ -254,7 +336,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     private void rotate() {
-        TextView button = findViewById(R.id.btn_rotate);
+        TextView button = findViewById(R.id.fs_rotate);
         orient = (orient + 1) % 3;
         if (orient == 0) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);

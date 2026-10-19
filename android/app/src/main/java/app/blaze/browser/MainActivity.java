@@ -114,32 +114,53 @@ public class MainActivity extends AppCompatActivity {
     private int fsOrient = 0;
     private float pageSpeed = 1f;
     private View fsControls;
-    private TextView fsTime;
     private TextView fsPlay;
     private TextView fsSpeed;
+    private TextView fsPosition;
+    private TextView fsDuration;
+    private android.widget.SeekBar fsSeek;
+    private boolean fsLocked;
+    private boolean fsScrubbing;
+    private int fsPosSec;
+    private int fsDurSec;
+    private int fsGestureBase;
+    private int fsVolStart;
+    private float fsBrightStart;
+    private long fsDownTime;
+    private long fsLastTap;
+    private float fsLastTapX;
+    private final Runnable hideFsBars = () -> setFsBars(false);
     private final Runnable fsTicker = new Runnable() {
         @Override
         public void run() {
             if (customView == null) return;
             current().evaluateJavascript(
-                    "(function(){var list=document.querySelectorAll('video');var v=null;"
-                            + "for(var i=0;i<list.length;i++){if(!list[i].paused)v=list[i];}"
-                            + "if(!v&&list.length)v=list[list.length-1];if(!v)return '';"
-                            + "return Math.floor(v.currentTime)+'|'+Math.floor(v.duration||0)+'|'+(v.paused?0:1);})()",
+                    "(function(){var list=document.querySelectorAll('video');var v=null,area=0;"
+                            + "for(var i=0;i<list.length;i++){var e=list[i];var a=(e.videoWidth||e.clientWidth||0)*(e.videoHeight||e.clientHeight||0);"
+                            + "if(!v||a>area){v=e;area=a;}}"
+                            + "if(!v)return '';"
+                            + "var b=0;try{if(v.buffered&&v.buffered.length){b=v.buffered.end(v.buffered.length-1);}}catch(e){}"
+                            + "return Math.floor(v.currentTime)+'|'+Math.floor(v.duration||0)+'|'+(v.paused?0:1)+'|'+Math.floor(b);})()",
                     value -> {
-                        if (value == null || fsTime == null) return;
+                        if (value == null) return;
                         String raw = value.replace("\"", "");
                         String[] parts = raw.split("\\|");
-                        if (parts.length < 3) return;
+                        if (parts.length < 4) return;
                         try {
-                            int pos = Integer.parseInt(parts[0]);
-                            int dur = Integer.parseInt(parts[1]);
+                            fsPosSec = Integer.parseInt(parts[0]);
+                            fsDurSec = Integer.parseInt(parts[1]);
+                            int buf = Integer.parseInt(parts[3]);
                             boolean paused = "0".equals(parts[2]);
-                            fsTime.setText(clock(pos) + " / " + (dur > 0 ? clock(dur) : "--:--"));
+                            if (fsPosition != null) fsPosition.setText(clock(fsPosSec));
+                            if (fsDuration != null) fsDuration.setText(fsDurSec > 0 ? clock(fsDurSec) : "--:--");
                             if (fsPlay != null) fsPlay.setText(paused ? "Play" : "Pause");
+                            if (fsSeek != null && !fsScrubbing && fsDurSec > 0) {
+                                fsSeek.setProgress(Math.min(1000, fsPosSec * 1000 / fsDurSec));
+                                fsSeek.setSecondaryProgress(Math.min(1000, buf * 1000 / fsDurSec));
+                            }
                         } catch (Exception ignored) {}
                     });
-            mainHandler.postDelayed(this, 500);
+            mainHandler.postDelayed(this, 400);
         }
     };
 
@@ -204,15 +225,26 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.fs_close).setOnClickListener(v -> exitPageFullscreen());
         findViewById(R.id.fs_pip).setOnClickListener(v -> enterPip());
         findViewById(R.id.fs_rotate).setOnClickListener(v -> toggleRotate());
-        findViewById(R.id.fs_play).setOnClickListener(v -> pageVideo("pause", 0));
-        findViewById(R.id.fs_back).setOnClickListener(v -> pageVideo("seek", -10));
-        findViewById(R.id.fs_fwd).setOnClickListener(v -> pageVideo("seek", 10));
-        findViewById(R.id.fs_jump).setOnClickListener(v -> pageVideo("seek", 30));
+        findViewById(R.id.fs_play).setOnClickListener(v -> { pageVideo("pause", 0); bumpFsBars(); });
         findViewById(R.id.fs_speed).setOnClickListener(v -> cyclePageSpeed());
+        findViewById(R.id.fs_lock).setOnClickListener(v -> toggleFsLock());
+        findViewById(R.id.fs_download).setOnClickListener(v -> downloadPageVideo());
         fsControls = findViewById(R.id.fs_controls);
-        fsTime = findViewById(R.id.fs_time);
         fsPlay = findViewById(R.id.fs_play);
         fsSpeed = findViewById(R.id.fs_speed);
+        fsPosition = findViewById(R.id.fs_position);
+        fsDuration = findViewById(R.id.fs_duration);
+        fsSeek = findViewById(R.id.fs_seek);
+        if (fsSeek != null) fsSeek.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onStartTrackingTouch(android.widget.SeekBar bar) { fsScrubbing = true; bumpFsBars(); }
+            @Override public void onProgressChanged(android.widget.SeekBar bar, int progress, boolean fromUser) {
+                if (fromUser && fsPosition != null && fsDurSec > 0) fsPosition.setText(clock(progress * fsDurSec / 1000));
+            }
+            @Override public void onStopTrackingTouch(android.widget.SeekBar bar) {
+                fsScrubbing = false;
+                if (fsDurSec > 0) pageVideo("to", bar.getProgress() * fsDurSec / 1000f);
+            }
+        });
         fsGestures.setOnTouchListener(this::onVideoGesture);
         playChip.setOnClickListener(v -> playDetected());
         View bkBtn = findViewById(R.id.btn_bookmark_page);
@@ -935,12 +967,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enterPageFullscreen(View view, WebChromeClient.CustomViewCallback callback) {
-        TabState tab = state(current());
-        if (tab.sniffedUrl != null && tab.sniffedUrl.startsWith("http")) {
-            if (callback != null) callback.onCustomViewHidden();
-            openMedia3(tab.sniffedUrl);
-            return;
-        }
         if (customView != null) {
             callback.onCustomViewHidden();
             return;
@@ -975,6 +1001,10 @@ public class MainActivity extends AppCompatActivity {
         if (rotate != null) rotate.setText("Landscape");
         mainHandler.removeCallbacks(fsTicker);
         mainHandler.post(fsTicker);
+        fsLocked = false;
+        setFsBars(true);
+        View deck = findViewById(R.id.fs_deck);
+        if (deck != null) deck.bringToFront();
     }
 
     private void exitPageFullscreen() {
@@ -1026,12 +1056,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void pageVideo(String cmd, float val) {
-        String js = "(function(){var list=document.querySelectorAll('video');var v=null;"
-                + "for(var i=0;i<list.length;i++){if(!list[i].paused)v=list[i];}"
-                + "if(!v){for(var j=list.length-1;j>=0;j--){if(list[j].videoWidth>0||list[j].currentTime>0){v=list[j];break;}}}"
-                + "if(!v&&list.length)v=list[list.length-1];if(!v)return 'none';"
+        String js = "(function(){var list=document.querySelectorAll('video');var v=null,area=0;"
+                + "for(var i=0;i<list.length;i++){var e=list[i];var a=(e.videoWidth||e.clientWidth||0)*(e.videoHeight||e.clientHeight||0);"
+                + "if(!v||a>area){v=e;area=a;}}"
+                + "if(!v)return 'none';"
                 + "if('" + cmd + "'==='seek'){var d=v.duration||0;var n=v.currentTime+" + val
                 + ";if(d&&isFinite(d))n=Math.max(0,Math.min(d,n));v.currentTime=n;}"
+                + "else if('" + cmd + "'==='to'){var d2=v.duration||0;var n2=" + val
+                + ";if(d2&&isFinite(d2))n2=Math.max(0,Math.min(d2,n2));v.currentTime=n2;}"
                 + "else if('" + cmd + "'==='pause'){if(v.paused)v.play();else v.pause();}"
                 + "else if('" + cmd + "'==='speed'){v.playbackRate=" + val + ";}"
                 + "return 'ok';})();";
@@ -1045,13 +1077,53 @@ public class MainActivity extends AppCompatActivity {
         String text = pageSpeed == 0.5f ? "0.5x" : (pageSpeed == 1f || pageSpeed == 2f ? ((int) pageSpeed) + ".0x" : pageSpeed + "x");
         if (fsSpeed != null) fsSpeed.setText(text);
         pageVideo("speed", pageSpeed);
+        bumpFsBars();
     }
+
+    private void toggleFsLock() {
+        fsLocked = !fsLocked;
+        TextView lock = findViewById(R.id.fs_lock);
+        if (lock != null) lock.setText(fsLocked ? "Unlock" : "Lock");
+        if (fsControls != null) fsControls.setVisibility(fsLocked ? View.GONE : View.VISIBLE);
+        int hide = fsLocked ? View.GONE : View.VISIBLE;
+        for (int id : new int[]{R.id.fs_close, R.id.fs_title, R.id.fs_speed, R.id.fs_download, R.id.fs_pip, R.id.fs_rotate}) {
+            View child = findViewById(id);
+            if (child != null) child.setVisibility(hide);
+        }
+        if (fsChrome != null) fsChrome.setVisibility(View.VISIBLE);
+        showFsHud(fsLocked ? "Locked" : "Unlocked");
+    }
+
+    private void downloadPageVideo() {
+        TabState tab = state(current());
+        String url = tab.sniffedUrl;
+        if (url == null || !url.startsWith("http")) {
+            Toast.makeText(this, "This video stays in the page and cannot be saved", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        DownloadTask queued = BlazeDownloadManager.get().enqueue(url, current().getUrl(), current().getSettings().getUserAgentString(), tab.title);
+        if (queued != null) Toast.makeText(this, "Download started", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setFsBars(boolean show) {
+        if (fsLocked) {
+            if (fsControls != null) fsControls.setVisibility(View.GONE);
+            if (fsChrome != null) fsChrome.setVisibility(show ? View.VISIBLE : View.GONE);
+            return;
+        }
+        if (fsControls != null) fsControls.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (fsChrome != null) fsChrome.setVisibility(show ? View.VISIBLE : View.GONE);
+        mainHandler.removeCallbacks(hideFsBars);
+        if (show) mainHandler.postDelayed(hideFsBars, 4000);
+    }
+
+    private void bumpFsBars() { setFsBars(true); }
 
     private void tameSurface(View view) {
         if (view instanceof SurfaceView) {
             SurfaceView surface = (SurfaceView) view;
             surface.setZOrderOnTop(false);
-            surface.setZOrderMediaOverlay(false);
+            surface.setZOrderMediaOverlay(true);
         }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
@@ -1082,56 +1154,73 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean onVideoGesture(View v, MotionEvent event) {
+        if (fsLocked) return true;
+        float width = Math.max(1f, v.getWidth());
+        float height = Math.max(1f, v.getHeight());
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 downX = event.getX();
                 downY = event.getY();
+                fsDownTime = event.getEventTime();
+                fsGestureBase = fsPosSec;
+                AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+                int maxVol = Math.max(1, audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+                fsVolStart = Math.round(audio.getStreamVolume(AudioManager.STREAM_MUSIC) * 100f / maxVol);
+                fsBrightStart = getWindow().getAttributes().screenBrightness;
+                if (fsBrightStart < 0) fsBrightStart = 0.6f;
                 gestureMode = "pending";
                 gestureMoved = false;
                 return true;
-            case MotionEvent.ACTION_MOVE:
+            case MotionEvent.ACTION_MOVE: {
                 float dx = event.getX() - downX;
                 float dy = event.getY() - downY;
-                float width = Math.max(1f, v.getWidth());
-                float height = Math.max(1f, v.getHeight());
                 if ("pending".equals(gestureMode)) {
-                    if (Math.hypot(dx, dy) < 16) return true;
+                    if (Math.hypot(dx, dy) < 18) {
+                        if (event.getEventTime() - fsDownTime > 350 && pageSpeed != 2f) {
+                            pageVideo("speed", 2f);
+                            showFsHud("2x");
+                        }
+                        return true;
+                    }
                     gestureMoved = true;
                     if (Math.abs(dx) > Math.abs(dy)) gestureMode = "seek";
                     else gestureMode = downX < width / 2f ? "bright" : "volume";
                 }
                 if ("seek".equals(gestureMode)) {
-                    int sec = Math.round(dx / width * 40f);
-                    current().evaluateJavascript(
-                            "(function(){var list=document.querySelectorAll('video');var v=null;"
-                                    + "for(var i=0;i<list.length;i++){if(!list[i].paused)v=list[i];}"
-                                    + "if(!v&&list.length)v=list[0];if(!v)return;var d=v.duration||0;"
-                                    + "var n=v.currentTime+" + sec + ";if(d)n=Math.max(0,Math.min(d,n));v.currentTime=n;})();",
-                            null);
-                    showFsHud((sec >= 0 ? "+" : "") + sec + "s");
+                    int delta = Math.round(dx / width * 40f);
+                    pageVideo("to", fsGestureBase + delta);
+                    showFsHud((delta >= 0 ? "+" : "") + delta + "s");
                 } else if ("volume".equals(gestureMode)) {
-                    int vol = Math.max(0, Math.min(100, Math.round(70 - (dy / height) * 120f)));
                     AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
                     int max = Math.max(1, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+                    int vol = Math.max(0, Math.min(100, Math.round(fsVolStart - (dy / height) * 100f)));
                     am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(vol / 100f * max), 0);
                     showFsHud("Volume " + vol + "%");
                 } else if ("bright".equals(gestureMode)) {
-                    int pct = Math.max(8, Math.min(100, Math.round(80 - (dy / height) * 120f)));
+                    int pct = Math.max(8, Math.min(100, Math.round(fsBrightStart * 100f - (dy / height) * 100f)));
                     WindowManager.LayoutParams lp = getWindow().getAttributes();
                     lp.screenBrightness = pct / 100f;
                     getWindow().setAttributes(lp);
                     showFsHud("Brightness " + pct + "%");
                 }
                 return true;
+            }
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                if (!gestureMoved) {
-                    boolean show = fsControls == null || fsControls.getVisibility() != View.VISIBLE;
-                    if (fsControls != null) fsControls.setVisibility(show ? View.VISIBLE : View.GONE);
-                    if (fsChrome != null) fsChrome.setVisibility(show ? View.VISIBLE : View.GONE);
+                if (pageSpeed != 2f) pageVideo("speed", pageSpeed);
+                if (!gestureMoved && event.getEventTime() - fsDownTime < 280) {
+                    long now = event.getEventTime();
+                    if (now - fsLastTap < 280 && Math.abs(event.getX() - fsLastTapX) < 120) {
+                        pageVideo("seek", event.getX() < width / 2f ? -10 : 10);
+                        fsLastTap = 0;
+                    } else {
+                        fsLastTap = now;
+                        fsLastTapX = event.getX();
+                        boolean show = fsControls == null || fsControls.getVisibility() != View.VISIBLE;
+                        setFsBars(show);
+                    }
                 }
                 gestureMode = "none";
-                fsHud.postDelayed(() -> fsHud.setVisibility(View.GONE), 280);
                 return true;
             default:
                 return false;
@@ -1139,9 +1228,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showFsHud(String text) {
+        if (fsHud == null) return;
         fsHud.setText(text);
         fsHud.setVisibility(View.VISIBLE);
+        fsHud.bringToFront();
+        mainHandler.removeCallbacks(hideFsHud);
+        mainHandler.postDelayed(hideFsHud, 800);
     }
+
+    private final Runnable hideFsHud = () -> {
+        if (fsHud != null) fsHud.setVisibility(View.GONE);
+    };
 
     @Override
     protected void onResume() {
