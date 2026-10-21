@@ -4,24 +4,44 @@ plugins {
 android {
     namespace "app.blaze.browser"
     compileSdk 36
+
+    signingConfigs {
+        release {
+            storeFile file("../../blaze.keystore")
+            storePassword "blaze123"
+            keyAlias "blaze"
+            keyPassword "blaze123"
+        }
+        debug {
+            storeFile file("../../blaze.keystore")
+            storePassword "blaze123"
+            keyAlias "blaze"
+            keyPassword "blaze123"
+        }
+    }
+
     defaultConfig {
         applicationId "app.blaze.browser"
         minSdk 24
         targetSdk 36
-        versionCode 19
-        versionName "4.3.1"
+        versionCode 20
+        versionName "4.3.2"
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
         debug {
             minifyEnabled false
+            signingConfig signingConfigs.debug
         }
     }
 }
