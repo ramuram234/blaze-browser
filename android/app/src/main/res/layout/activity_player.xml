@@ -1,40 +1,379 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    MX Player / UC Browser style video player layout.
+    All controls work correctly - no TextView/ImageButton cast issues.
+    
+    Structure:
+    - PlayerView (video surface)
+    - Gesture layer (full screen, transparent - handles all touch)
+    - HUD (center feedback text for seek/vol/bright)
+    - Volume hint bar (left side, vertical)
+    - Brightness hint bar (right side, vertical... wait no)
+      Actually: left = brightness, right = volume (like MX Player)
+    - Loading spinner (center)
+    - Error view (center)
+    - TOP BAR: back + title + pip + download + rotate + lock
+    - BOTTOM BAR: seekbar + time row + playback buttons
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000">
 
+    <!-- ?? VIDEO SURFACE ???????????????????????????????????????????????? -->
     <androidx.media3.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:show_buffering="when_playing"
         app:surface_type="texture_view"
+        app:show_buffering="when_playing"
         app:use_controller="false" />
 
+    <!-- ?? FULL-SCREEN GESTURE LAYER (behind top/bottom bars) ??????????? -->
     <View
         android:id="@+id/gesture_layer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="false" />
 
+    <!-- ?? LOADING SPINNER (center, shown while buffering) ?????????????? -->
+    <ProgressBar
+        android:id="@+id/player_loading"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        android:indeterminateTint="#FFFFFF"
+        android:visibility="gone" />
+
+    <!-- ?? HUD (center feedback: seek +10s, Vol 80%, etc.) ????????????? -->
     <TextView
-        android:id="@+id/hud"
+        android:id="@+id/player_hud"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="#CC111111"
-        android:paddingStart="18dp"
+        android:background="#BB000000"
+        android:paddingStart="20dp"
         android:paddingTop="12dp"
-        android:paddingEnd="18dp"
+        android:paddingEnd="20dp"
         android:paddingBottom="12dp"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:visibility="gone" />
 
-    <include
-        layout="@layout/uc_player_controls"
+    <!-- ?? MX Player style: Volume/Brightness SIDE indicators ??????????
+         Left side = Brightness, Right side = Volume
+         Shows as vertical bar during gesture                            -->
+    <LinearLayout
+        android:id="@+id/bright_hint"
+        android:layout_width="44dp"
+        android:layout_height="180dp"
+        android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="24dp"
+        android:background="#BB000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_compass"
+            android:tint="#FFFFFF"
+            android:contentDescription="Brightness" />
+        <ProgressBar
+            android:id="@+id/bright_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="100dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progress="60"
+            android:progressTint="#FF9C38"
+            android:progressBackgroundTint="#44FFFFFF"
+            android:rotation="270" />
+        <TextView
+            android:id="@+id/bright_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="60%"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/vol_hint"
+        android:layout_width="44dp"
+        android:layout_height="180dp"
+        android:layout_gravity="center_vertical|end"
+        android:layout_marginEnd="24dp"
+        android:background="#BB000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:tint="#FFFFFF"
+            android:contentDescription="Volume" />
+        <ProgressBar
+            android:id="@+id/vol_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="100dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progress="70"
+            android:progressTint="#FF9C38"
+            android:progressBackgroundTint="#44FFFFFF"
+            android:rotation="270" />
+        <TextView
+            android:id="@+id/vol_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="70%"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- ?? ERROR STATE ?????????????????????????????????????????????????? -->
+    <LinearLayout
+        android:id="@+id/player_error_view"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#CC000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:gravity="center"
+            android:text="?"
+            android:textColor="#FF5555"
+            android:textSize="24sp" />
+        <TextView
+            android:id="@+id/player_error_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="Cannot play video"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:maxLines="3" />
+        <Button
+            android:id="@+id/player_error_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#FF9C38"
+            android:text="Retry"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- ?? TOP BAR (UC Browser traffic_title_bar style) ???????????????? -->
+    <LinearLayout
+        android:id="@+id/player_top_bar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="56dp"
+        android:layout_gravity="top"
+        android:background="#CC000000"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="8dp">
+
+        <ImageButton
+            android:id="@+id/player_close"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Back"
+            android:src="@drawable/ic_back"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/player_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingStart="4dp"
+            android:text="Video"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <!-- Download button -->
+        <ImageButton
+            android:id="@+id/player_download"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Download"
+            android:src="@android:drawable/stat_sys_download"
+            android:tint="#FFFFFF" />
+
+        <!-- PiP button -->
+        <ImageButton
+            android:id="@+id/player_pip"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Mini Window"
+            android:src="@android:drawable/ic_menu_slideshow"
+            android:tint="#FFFFFF" />
+
+        <!-- Rotation button -->
+        <ImageButton
+            android:id="@+id/player_rotate"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Rotate"
+            android:src="@drawable/ic_rotate_auto"
+            android:tint="#FF9C38" />
+
+        <!-- Lock button -->
+        <ImageButton
+            android:id="@+id/player_lock"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Lock screen"
+            android:src="@android:drawable/ic_lock_lock"
+            android:tint="#AAAAAA" />
+    </LinearLayout>
+
+    <!-- ?? BOTTOM CONTROLS (MX Player style) ??????????????????????????? -->
+    <LinearLayout
+        android:id="@+id/player_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#E6000000"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp">
+
+        <!-- Seekbar row (full width like MX Player) -->
+        <SeekBar
+            android:id="@+id/player_seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:max="10000"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:progressTint="#FF9C38"
+            android:progressBackgroundTint="#44FFFFFF"
+            android:secondaryProgressTint="#66FFFFFF"
+            android:thumbTint="#FF9C38" />
+
+        <!-- Time + playback controls row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Current position -->
+            <TextView
+                android:id="@+id/player_position"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="44dp"
+                android:text="0:00"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Rewind -10s -->
+            <ImageButton
+                android:id="@+id/player_rewind"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Rewind 10s"
+                android:src="@android:drawable/ic_media_rew"
+                android:tint="#FFFFFF" />
+
+            <!-- Play/Pause - large center button like MX Player -->
+            <ImageButton
+                android:id="@+id/player_play_pause"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Play/Pause"
+                android:src="@android:drawable/ic_media_pause"
+                android:tint="#FFFFFF" />
+
+            <!-- Forward +10s -->
+            <ImageButton
+                android:id="@+id/player_forward"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Forward 10s"
+                android:src="@android:drawable/ic_media_ff"
+                android:tint="#FFFFFF" />
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Duration -->
+            <TextView
+                android:id="@+id/player_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="44dp"
+                android:gravity="end"
+                android:text="0:00"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Speed indicator row (optional, shown when speed != 1x) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:paddingEnd="4dp">
+            <TextView
+                android:id="@+id/player_speed_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:text=""
+                android:textColor="#FF9C38"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
 </FrameLayout>
