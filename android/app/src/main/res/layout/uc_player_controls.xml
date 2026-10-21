@@ -1,97 +1,287 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    UC Browser-style player controls.
+    Matches UC Browser traffic_video_player_layout.xml + video_site_controls_layout.xml
+
+    Title bar (84dp, like UC traffic_title_bar.xml):
+        Back  | Title (bold 16dp white) | Data display | [Space] | Save | PiP | Rotate | Lock
+
+    Bottom bar (E6000000 = 90% black):
+        Play icon | Time | SeekBar (3 layers: bg+buffer+progress) | Duration
+
+    Center overlays:
+        - VolumeBrightnessHintView (icon + ProgressBar) - centered, shown during gestures
+        - Loading spinner (centered ProgressBar, shown while buffering)
+        - Error view (error msg + code text)
+
+    Right-side buttons (top-right, UC video_site_controls_layout.xml):
+        - Watch Later (bookmark icon)
+        - Audio switch
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/fs_deck"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clickable="false"
-    android:elevation="24dp">
+    android:clickable="false">
 
+    <!-- UC traffic_title_bar.xml: 84dp tall title bar -->
     <LinearLayout
         android:id="@+id/fs_chrome"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="84dp"
         android:layout_gravity="top"
         android:background="#CC000000"
         android:gravity="center_vertical"
-        android:paddingStart="2dp"
-        android:paddingEnd="4dp">
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp">
 
+        <!-- Back button (traffic_title_bar_back) -->
         <ImageButton
             android:id="@+id/fs_close"
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:background="@android:color/transparent"
             android:contentDescription="Close"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            android:src="@drawable/ic_back"
+            android:tint="#FFFFFF" />
 
-        <TextView
-            android:id="@+id/fs_title"
+        <!-- Title (traffic_title_bar_title - bold 16dp white) -->
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Video"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:layout_marginStart="4dp">
 
-        <TextView
-            android:id="@+id/fs_lock"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:gravity="center"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:text="Lock"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/fs_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Video"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/fs_speed"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:gravity="center"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:text="1.0x"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
+            <!-- UC traffic_title_bar_data: shows data usage like "5.2 MB" -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-        <TextView
+                <TextView
+                    android:id="@+id/traffic_title_bar_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#BBFFFFFF"
+                    android:textSize="11sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/traffic_title_bar_data_save"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:textColor="#88FF9C38"
+                    android:textSize="11sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Right-side control buttons (UC BaseButton pattern = ImageView + SVG icon) -->
+
+        <!-- UC WatchLaterButton: add_fav.svg / remove_fav.svg -->
+        <ImageButton
+            android:id="@+id/fs_watch_later"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Watch Later"
+            android:src="@drawable/ic_watch_later"
+            android:tint="#AAAAAA" />
+
+        <!-- UC AudioSwitchView: web_page_audio_switch_video.svg -->
+        <ImageButton
+            android:id="@+id/fs_audio_switch"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Audio Switch"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:tint="#AAAAAA"
+            android:visibility="gone" />
+
+        <!-- UC DownloadButton: player_menu_download_bg.xml -->
+        <ImageButton
             android:id="@+id/fs_download"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:gravity="center"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:text="Save"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Download"
+            android:src="@android:drawable/stat_sys_download"
+            android:tint="#FFFFFF" />
 
-        <TextView
+        <!-- UC LittleWindowView: PiP -->
+        <ImageButton
             android:id="@+id/fs_pip"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:gravity="center"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:text="PiP"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="PiP"
+            android:src="@android:drawable/ic_menu_slideshow"
+            android:tint="#FFFFFF" />
 
-        <TextView
+        <!-- UC RotationBtn: ImageView, cycles orientations -->
+        <ImageButton
             android:id="@+id/fs_rotate"
-            android:layout_width="wrap_content"
-            android:layout_height="44dp"
-            android:gravity="center"
-            android:paddingStart="6dp"
-            android:paddingEnd="8dp"
-            android:text="Landscape"
-            android:textColor="#FFB020"
-            android:textStyle="bold" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Rotate"
+            android:src="@drawable/ic_rotate_landscape"
+            android:tint="#FFB020" />
+
+        <!-- Lock toggle -->
+        <ImageButton
+            android:id="@+id/fs_lock"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Lock"
+            android:src="@android:drawable/ic_lock_lock"
+            android:tint="#AAAAAA" />
+
     </LinearLayout>
 
+    <!-- UC VolumeBrightnessHintView: centered LinearLayout(ImageView + ProgressBar)
+         Uses background player_center_hint_background.9.png (rounded rect semi-transparent)
+         Hidden by default, shown during vertical swipe gestures -->
+    <LinearLayout
+        android:id="@+id/volume_brightness_hint"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#CC000000"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <!-- UC: n = ImageView (player_center_hint_img_size = ~40dp) -->
+        <ImageView
+            android:id="@+id/hint_icon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="Hint"
+            android:src="@android:drawable/ic_lock_silent_mode_off"
+            android:tint="#FFFFFF" />
+
+        <!-- UC: o = ProgressBar (horizontal, video_volume_progressbar drawable)
+             player_center_hint_pb_height ~ 4dp
+             player_center_hint_pb_left_magrin ~ 8dp -->
+        <ProgressBar
+            android:id="@+id/hint_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="100dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="10dp"
+            android:max="100"
+            android:progress="50"
+            android:progressTint="#FF9C38" />
+
+        <!-- Optional percentage label -->
+        <TextView
+            android:id="@+id/hint_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="50%"
+            android:textColor="#CCFFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- UC video_loading_progress.xml: centered spinner while buffering -->
+    <FrameLayout
+        android:id="@+id/video_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone">
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminate="true"
+            android:progressTint="#FFFFFF" />
+    </FrameLayout>
+
+    <!-- UC video_error.xml: error message + code -->
+    <LinearLayout
+        android:id="@+id/video_error_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#CC000000"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/video_error_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Cannot play this video"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:maxLines="2" />
+
+        <TextView
+            android:id="@+id/video_error_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:textColor="#AAAAAA"
+            android:textSize="11sp"
+            android:maxLines="1" />
+
+        <Button
+            android:id="@+id/video_error_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginTop="8dp"
+            android:text="Retry"
+            android:textSize="13sp"
+            android:backgroundTint="#FF9C38" />
+    </LinearLayout>
+
+    <!-- Speed boost indicator (UC RocketSpeedTextView style) -->
+    <TextView
+        android:id="@+id/speed_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="88dp"
+        android:layout_marginStart="12dp"
+        android:background="#88000000"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:textColor="#FF9C38"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <!-- UC Bottom controls bar
+         Background: #E6000000 = ~90% black (same as UC player)
+         SeekBar: has secondaryProgress for buffer visualization -->
     <LinearLayout
         android:id="@+id/fs_controls"
         android:layout_width="match_parent"
@@ -101,19 +291,21 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="8dp"
-        android:paddingTop="6dp"
+        android:paddingTop="8dp"
         android:paddingEnd="8dp"
-        android:paddingBottom="10dp">
+        android:paddingBottom="12dp">
 
+        <!-- UC PlayButton - use Unicode for now (Lottie requires dependency) -->
         <TextView
             android:id="@+id/fs_play"
-            android:layout_width="52dp"
-            android:layout_height="44dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:gravity="center"
-            android:text="Pause"
+            android:text="&#9646;&#9646;"
             android:textColor="#FFFFFF"
-            android:textStyle="bold" />
+            android:textSize="22sp" />
 
+        <!-- Current position -->
         <TextView
             android:id="@+id/fs_position"
             android:layout_width="44dp"
@@ -123,6 +315,7 @@
             android:textColor="#FFFFFF"
             android:textSize="11sp" />
 
+        <!-- UC PlayerSeekBar: uses custom drawable with buffer (secondaryProgress) -->
         <SeekBar
             android:id="@+id/fs_seek"
             android:layout_width="0dp"
@@ -130,15 +323,35 @@
             android:layout_weight="1"
             android:max="1000"
             android:progress="0"
-            android:secondaryProgress="0" />
+            android:secondaryProgress="0"
+            android:progressTint="#FFFFFF"
+            android:progressBackgroundTint="#55FFFFFF"
+            android:secondaryProgressTint="#88FFFFFF"
+            android:thumbTint="#FFFFFF" />
 
+        <!-- Duration -->
         <TextView
             android:id="@+id/fs_duration"
             android:layout_width="44dp"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="0:00"
-            android:textColor="#FFFFFF"
+            android:textColor="#AAAAAA"
             android:textSize="11sp" />
+
+        <!-- UC RocketSpeedTextView - speed display in bottom right -->
+        <TextView
+            android:id="@+id/fs_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp"
+            android:text="1x"
+            android:textColor="#FF9C38"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
     </LinearLayout>
+
 </FrameLayout>

@@ -63,6 +63,16 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private float speed = 1f;
+    // UC Browser VolumeBrightnessHintView: LinearLayout(ImageView+ProgressBar)
+    private android.widget.LinearLayout vbHint;
+    private android.widget.ImageView hintIcon;
+    private android.widget.ProgressBar hintProgress;
+    private android.widget.TextView hintPct;
+    private final Runnable hideVbHint = () -> {
+        if (vbHint != null) vbHint.setVisibility(android.view.View.GONE);
+    };
+    private android.view.View loadingView;
+    private boolean audioMuted = false;
     private int orient = 0;
     private boolean locked = false;
     private float downX;
@@ -97,6 +107,18 @@ public class VideoPlayerActivity extends AppCompatActivity {
         seekBar = findViewById(R.id.fs_seek);
         String title = getIntent().getStringExtra(EXTRA_TITLE);
         if (titleView != null && title != null && !title.isEmpty()) titleView.setText(title);
+        // UC Browser VolumeBrightnessHintView bindings
+        vbHint = (android.widget.LinearLayout) findViewById(R.id.volume_brightness_hint);
+        hintIcon = (android.widget.ImageView) (vbHint != null ? vbHint.findViewById(R.id.hint_icon) : null);
+        hintProgress = (android.widget.ProgressBar) (vbHint != null ? vbHint.findViewById(R.id.hint_progress) : null);
+        hintPct = (android.widget.TextView) (vbHint != null ? vbHint.findViewById(R.id.hint_pct) : null);
+        loadingView = findViewById(R.id.video_loading);
+        // UC WatchLaterButton
+        android.view.View watchLaterBtn = findViewById(R.id.fs_watch_later);
+        if (watchLaterBtn != null) watchLaterBtn.setOnClickListener(wv -> saveWatchLater());
+        // UC AudioSwitchView
+        android.view.View audioSwitchBtn = findViewById(R.id.fs_audio_switch);
+        if (audioSwitchBtn != null) audioSwitchBtn.setOnClickListener(av -> toggleAudio());
 
         Map<String, String> headers = new HashMap<>();
         String referer = getIntent().getStringExtra(EXTRA_REFERER);
@@ -141,6 +163,15 @@ public class VideoPlayerActivity extends AppCompatActivity {
             @Override
             public void onPlayerError(PlaybackException error) {
                 Toast.makeText(VideoPlayerActivity.this, "Playback failed. Try the page player.", Toast.LENGTH_LONG).show();
+                if (loadingView != null) loadingView.setVisibility(android.view.View.GONE);
+                android.view.View ev = findViewById(R.id.video_error_view);
+                if (ev != null) {
+                    android.widget.TextView em = (android.widget.TextView) ev.findViewById(R.id.video_error_msg);
+                    android.widget.TextView ec = (android.widget.TextView) ev.findViewById(R.id.video_error_code);
+                    if (em != null) em.setText("Cannot play this video");
+                    if (ec != null) ec.setText("Code: " + error.errorCode);
+                    ev.setVisibility(android.view.View.VISIBLE);
+                }
             }
 
             @Override
@@ -200,7 +231,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 long buf = player.getBufferedPosition();
                 if (positionView != null) positionView.setText(clock(pos));
                 if (durationView != null) durationView.setText(dur > 0 ? clock(dur) : "--:--");
-                if (playButton != null) playButton.setText(player.isPlaying() ? "Pause" : "Play");
+                if (playButton != null) playButton.setText(player.isPlaying() ? "⏸" : "▶");
                 if (seekBar != null && !scrubbing && dur > 0) {
                     seekBar.setProgress((int) Math.min(1000, pos * 1000L / dur));
                     seekBar.setSecondaryProgress((int) Math.min(1000, buf * 1000L / dur));
@@ -292,12 +323,14 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     max = Math.max(1, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
                     am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(vol / 100f * max), 0);
                     showHud("Volume " + vol + "%");
+            showVbHint(true, vol);
                 } else if ("bright".equals(mode)) {
                     int pct = (int) Math.max(5, Math.min(100, Math.round(brightStart * 100 - (dy / height) * 100f)));
                     WindowManager.LayoutParams lp = getWindow().getAttributes();
                     lp.screenBrightness = pct / 100f;
                     getWindow().setAttributes(lp);
                     showHud("Brightness " + pct + "%");
+            showVbHint(false, pct);
                 }
                 return true;
             }
@@ -443,4 +476,50 @@ public class VideoPlayerActivity extends AppCompatActivity {
         }
         super.onDestroy();
     }
+    // UC Browser VolumeBrightnessHintView: show(isVolume, value0to100)
+    // Matches VolumeBrightnessHintView.java: setOrientation(1), setGravity(17),
+    // ImageView n (icon), ProgressBar o (horizontal, video_volume_progressbar)
+    private void showVbHint(boolean isVolume, int val) {
+        if (vbHint == null) return;
+        if (hintIcon != null) {
+            hintIcon.setImageResource(isVolume
+                ? android.R.drawable.ic_lock_silent_mode_off
+                : android.R.drawable.ic_menu_compass);
+        }
+        if (hintProgress != null) hintProgress.setProgress(val);
+        if (hintPct != null) hintPct.setText(val + "%");
+        vbHint.setVisibility(android.view.View.VISIBLE);
+        handler.removeCallbacks(hideVbHint);
+        handler.postDelayed(hideVbHint, 1200);
+    }
+
+    // UC Browser WatchLaterButton pattern: add_fav.svg / remove_fav.svg
+    private void saveWatchLater() {
+        String url = null;
+        if (player != null && player.getCurrentMediaItem() != null
+                && player.getCurrentMediaItem().localConfiguration != null) {
+            url = player.getCurrentMediaItem().localConfiguration.uri.toString();
+        }
+        if (url == null) { Toast.makeText(this, "No video URL", Toast.LENGTH_SHORT).show(); return; }
+        String ttl = getIntent().getStringExtra(EXTRA_TITLE);
+        if (ttl == null) ttl = "Saved video";
+        BrowserPrefs.toggleBookmark(this, ttl, url);
+        boolean saved = BrowserPrefs.isBookmarked(this, url);
+        Toast.makeText(this, saved ? "\u2764 Saved to Watch Later" : "Removed from Watch Later",
+                Toast.LENGTH_SHORT).show();
+        android.widget.ImageButton wlb = (android.widget.ImageButton) findViewById(R.id.fs_watch_later);
+        if (wlb != null) wlb.setAlpha(saved ? 1f : 0.5f);
+    }
+
+    // UC Browser AudioSwitchView: web_page_audio_switch_video.svg / web_page_video_switch_audio.svg
+    private void toggleAudio() {
+        audioMuted = !audioMuted;
+        if (player != null) player.setVolume(audioMuted ? 0f : 1f);
+        android.widget.ImageButton asb = (android.widget.ImageButton) findViewById(R.id.fs_audio_switch);
+        if (asb != null) asb.setImageResource(audioMuted
+            ? android.R.drawable.ic_lock_silent_mode
+            : android.R.drawable.ic_lock_silent_mode_off);
+        showHud(audioMuted ? "Audio muted" : "Audio on");
+    }
+
 }
